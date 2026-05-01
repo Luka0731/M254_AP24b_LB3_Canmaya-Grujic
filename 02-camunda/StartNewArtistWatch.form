@@ -1,0 +1,150 @@
+{
+  "components": [
+    {
+      "text": "# CONCERT TICKET WATCHER",
+      "type": "text",
+      "layout": {
+        "row": "Row_0by6gmy",
+        "columns": null
+      },
+      "id": "Field_0aw4dqg",
+      "properties": {}
+    },
+    {
+      "type": "image",
+      "layout": {
+        "row": "Row_11gk97o",
+        "columns": null
+      },
+      "id": "Field_0rku6xt",
+      "source": "https://img.calovo.de/images/customers/6766/ticketmaster_cs374897.jpg",
+      "alt": "Image couldent be loaded!"
+    },
+    {
+      "text": "## Welcome to the Concert Ticket Watcher!!!\n\nYou have started the Concert Ticket Watcher for Caumunda! Here you can put in any music artist you like from Ticketmaster. Then you and mates you invite will be informed when the artist will have a concert and when the tickets get solled!!\n\nTo set up a watcher, you have to first put in some nessesay data for the progrgam to work. After that you dont have to worrie anymore. You will get informed as soon as the artist peforms a concert in your area.",
+      "type": "text",
+      "layout": {
+        "row": "Row_1mc89y0",
+        "columns": null
+      },
+      "id": "Field_0nyl5rj"
+    },
+    {
+      "content": "<a href=\"https://www.ticketmaster.com\" target=\"_blank\">Click here to search for your artist on Ticketmaster</a>",
+      "type": "html",
+      "layout": {
+        "row": "Row_1wmhclz",
+        "columns": null
+      },
+      "id": "Field_10vz4io"
+    },
+    {
+      "type": "separator",
+      "layout": {
+        "row": "Row_05cswn0",
+        "columns": null
+      },
+      "id": "Field_0zr5k2t"
+    },
+    {
+      "text": "## Concert Details",
+      "type": "text",
+      "layout": {
+        "row": "Row_0wo2jgw",
+        "columns": null
+      },
+      "id": "Field_03tzncs"
+    },
+    {
+      "label": "Artist name",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0olqlu6",
+        "columns": null
+      },
+      "id": "Field_1bfbzo8",
+      "key": "artistName",
+      "validate": {
+        "required": true
+      },
+      "description": "(Please enter the artist name exactly as it appears on Ticketmaster)"
+    },
+    {
+      "label": "Max distance in km",
+      "type": "number",
+      "layout": {
+        "row": "Row_0olqlu6",
+        "columns": null
+      },
+      "id": "Field_0qeq12f",
+      "key": "maxDistanceKm",
+      "validate": {
+        "required": true,
+        "min": "0",
+        "max": "40075"
+      },
+      "defaultValue": 150
+    },
+    {
+      "type": "separator",
+      "layout": {
+        "row": "Row_0h2sxja",
+        "columns": null
+      },
+      "id": "Field_06cipxh"
+    },
+    {
+      "text": "## About You",
+      "type": "text",
+      "layout": {
+        "row": "Row_005bs77",
+        "columns": null
+      },
+      "id": "Field_0mon8tu"
+    },
+    {
+      "label": "Your name",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1v25908",
+        "columns": null
+      },
+      "id": "Field_1inala5",
+      "key": "userName",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Email address",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1v25908",
+        "columns": null
+      },
+      "id": "Field_1ue3ytm",
+      "key": "email",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "content": "<p style=\"color: gray; font-size: 0.9em;\">Note: You will recive a email if the settup of the watcher worked.</p>",
+      "type": "html",
+      "layout": {
+        "row": "Row_1642yno",
+        "columns": null
+      },
+      "id": "Field_1eysd9x"
+    }
+  ],
+  "type": "default",
+  "id": "Form_0y1150m",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.8.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.44.0"
+  },
+  "schemaVersion": 19
+}

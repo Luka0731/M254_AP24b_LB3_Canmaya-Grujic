@@ -1,0 +1,62 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.17 Chrome/128.0.6613.36 Electron/32.0.1 Safari/537.36" version="24.7.17">
+  <diagram name="Page-1" id="sd0OiBIls6nc712lviqS">
+    <mxGraphModel dx="1195" dy="797" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="R8FJp2sLQOwPTHyGOoGT-1" target="R8FJp2sLQOwPTHyGOoGT-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-1" value="Handler" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="360" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-2" value="Fetcher" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="610" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-6" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="R8FJp2sLQOwPTHyGOoGT-3" target="R8FJp2sLQOwPTHyGOoGT-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="R8FJp2sLQOwPTHyGOoGT-3" target="R8FJp2sLQOwPTHyGOoGT-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="430" y="560" />
+              <mxPoint x="620" y="560" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-3" value="Service" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="480" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-4" value="Repository" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="610" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-5" value="Model" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="730" width="320" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-14" value="&lt;font color=&quot;#adadad&quot;&gt;object class that gets passed around in the backend&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="520.0024055585477" y="800.0034551995116" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-20" value="&lt;font color=&quot;#adadad&quot;&gt;gets data from other APIs&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="620.0024055585477" y="680.0034551995116" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-21" value="&lt;font color=&quot;#adadad&quot;&gt;gets data from db&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="420.0024055585477" y="680.0034551995116" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-22" value="&lt;font color=&quot;#adadad&quot;&gt;connection to caumunda&amp;nbsp;&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#adadad&quot;&gt;recives data when caumunda task starts and returns data&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="420.0024055585477" y="340.00345519951156" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-24" value="&lt;font color=&quot;#adadad&quot;&gt;does the buissnes logic&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="297.0024055585477" y="512.0034551995116" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="R8FJp2sLQOwPTHyGOoGT-3" target="R8FJp2sLQOwPTHyGOoGT-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="R8FJp2sLQOwPTHyGOoGT-26" value="talks to other services" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="R8FJp2sLQOwPTHyGOoGT-25">
+          <mxGeometry x="-0.3048" relative="1" as="geometry">
+            <mxPoint x="56" y="9" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

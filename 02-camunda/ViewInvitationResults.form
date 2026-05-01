@@ -1,0 +1,76 @@
+{
+  "components": [
+    {
+      "text": "# OVERVIEW WHO ACCEPTED THE INVATATION",
+      "type": "text",
+      "layout": {
+        "row": "Row_18hvb2n",
+        "columns": null
+      },
+      "id": "Field_1mpl7ut"
+    },
+    {
+      "type": "image",
+      "layout": {
+        "row": "Row_0q5hd09",
+        "columns": null
+      },
+      "id": "Field_1w6rujx",
+      "source": "=eventImageUrl",
+      "alt": "Image couldent be loaded!"
+    },
+    {
+      "type": "separator",
+      "layout": {
+        "row": "Row_1b0gddg",
+        "columns": null
+      },
+      "id": "Field_1r7iers"
+    },
+    {
+      "text": "### People who accepted:",
+      "type": "text",
+      "layout": {
+        "row": "Row_1ru5cns",
+        "columns": 16
+      },
+      "id": "Field_1n7amkb"
+    },
+    {
+      "text": "=inviteesAccepted",
+      "type": "text",
+      "layout": {
+        "row": "Row_1l2urys",
+        "columns": null
+      },
+      "id": "Field_1nyuaw7"
+    },
+    {
+      "text": "### People who declined:",
+      "type": "text",
+      "layout": {
+        "row": "Row_0i88rlh",
+        "columns": 16
+      },
+      "id": "Field_0i0tx1e"
+    },
+    {
+      "text": "=inviteesDeclined",
+      "type": "text",
+      "layout": {
+        "row": "Row_068whub",
+        "columns": null
+      },
+      "id": "Field_0xstrtm"
+    }
+  ],
+  "type": "default",
+  "id": "Form_0v8rsbt",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.44.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.24.0",
+  "schemaVersion": 19
+}

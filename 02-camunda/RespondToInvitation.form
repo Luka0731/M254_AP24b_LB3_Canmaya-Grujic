@@ -1,0 +1,77 @@
+{
+  "components": [
+    {
+      "text": "# YOU HAVE BEEN INVITED!",
+      "type": "text",
+      "layout": {
+        "row": "Row_1lq144i",
+        "columns": null
+      },
+      "id": "Field_0xb9n1n"
+    },
+    {
+      "content": "<p>You have been invited by {{userName}} to go to a {{eventName}} Concert with them!</p>",
+      "type": "html",
+      "layout": {
+        "row": "Row_076vb1q",
+        "columns": null
+      },
+      "id": "Field_1cjnn44"
+    },
+    {
+      "type": "separator",
+      "layout": {
+        "row": "Row_0sxqjx8",
+        "columns": null
+      },
+      "id": "Field_07aqpae"
+    },
+    {
+      "type": "image",
+      "layout": {
+        "row": "Row_189qjs1",
+        "columns": null
+      },
+      "id": "Field_02l3ol2",
+      "source": "=eventImageUrl",
+      "alt": "Image couldent be loaded!"
+    },
+    {
+      "content": "<h3>{{eventName}}</h3>\n<p>Location: {{eventVenue}}, {{eventCity}}</p>\n<p>Date: {{eventDate}}</p>\n<p>Price: {{eventPrice}}</p>\n<a href=\"{{eventUrl}}\" target=\"_blank\">Click here to buy tickets or to find out more about the Event!</a>",
+      "type": "html",
+      "layout": {
+        "row": "Row_1fmk0st",
+        "columns": null
+      },
+      "id": "Field_1i3o1xw"
+    },
+    {
+      "type": "separator",
+      "layout": {
+        "row": "Row_0x1wmw9",
+        "columns": null
+      },
+      "id": "Field_12fk62z"
+    },
+    {
+      "label": "I want to go to the Concert",
+      "type": "checkbox",
+      "layout": {
+        "row": "Row_1ez3k1c",
+        "columns": null
+      },
+      "id": "Field_082jfyo",
+      "key": "isGoing",
+      "description": "If you accept, the initiator will be informed and you will reseve a email reminder 30 mins bevor the tickets will be solled"
+    }
+  ],
+  "type": "default",
+  "id": "Form_0i6qy3b",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.44.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.24.0",
+  "schemaVersion": 19
+}

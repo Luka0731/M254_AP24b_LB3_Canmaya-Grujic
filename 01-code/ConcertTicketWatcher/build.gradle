@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+}
+
+group = 'ch.noseryoung'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    implementation 'org.camunda.bpm:camunda-external-task-client:7.20.0'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+    implementation 'org.postgresql:postgresql:42.7.1'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+test {
+    useJUnitPlatform()
+}
+
+
+/**
+ * |----- explanation of libraries used in this project -----|
+ *
+ * Camunda External Task Client
+ * ---
+ * The library that lets the Java program talk to Camunda. It handles the connection to the Camunda REST API, fetches
+ * tasks, and sends results back. Without this your Java program has no idea Camunda even exists.
+ *
+ * PostgreSQL JDBC Driver
+ * ---
+ * The driver that lets Java talk to the PostgreSQL database. JDBC is the standard Java way of connecting to any
+ * database. Without this Java can't read or write to the seen_events DB. Unlike SQLite, PostgreSQL runs as a
+ * separate server process, making it more suitable for production-like environments.
+ *
+ * Apache HttpClient
+ * ---
+ * A library for making HTTP requests from Java. You need this to call the Ticketmaster API and the ip-api.com
+ * geolocation API. Without this Java can't make any web requests to external services.
+ */
