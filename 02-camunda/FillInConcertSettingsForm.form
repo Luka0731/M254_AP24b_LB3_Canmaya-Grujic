@@ -75,7 +75,7 @@
         "columns": null
       },
       "id": "Field_0uz0o4l",
-      "key": "invitees",
+      "key": "inviteeUsernames",
       "disabled": false,
       "validate": {
         "minLength": ""
@@ -85,7 +85,7 @@
     }
   ],
   "type": "default",
-  "id": "Form_1b90z1n",
+  "id": "FillInConcertSettingsForm",
   "exporter": {
     "name": "Camunda Modeler",
     "version": "5.44.0"

@@ -12,11 +12,11 @@ public class TicketTaskHandler extends Handler {
 
     @Override
     protected List<String> defineReceivedData() {
-        return null;
+        return List.of();
     }
 
     @Override
     protected List<String> defineReturnData() {
-        return null;
+        return List.of("ticketsAvailable", "ticketUrl", "ticketPrice");
     }
 }

@@ -12,11 +12,11 @@ public class InviteeTaskHandler extends Handler {
 
     @Override
     protected List<String> defineReceivedData() {
-        return List.of();
+        return List.of("inviteeUsernames");
     }
 
     @Override
     protected List<String> defineReturnData() {
-        return List.of();
+        return List.of("inviteeList");
     }
 }

@@ -28,9 +28,9 @@ public class Setup {
         TicketmasterEventFetcher ticketmasterEventFetcher = new TicketmasterEventFetcher();
         TicketmasterTicketFetcher ticketmasterTicketFetcher = new TicketmasterTicketFetcher();
         // services
-        ConcertTaskService concertTaskService = new ConcertTaskService();
+        ConcertTaskService concertTaskService = new ConcertTaskService(geolocationFetcher, ticketmasterEventFetcher);
         InviteeTaskService inviteeTaskService = new InviteeTaskService();
-        TicketTaskService ticketTaskService = new TicketTaskService();
+        TicketTaskService ticketTaskService = new TicketTaskService(ticketmasterTicketFetcher);
         // handlers
         ExternalTaskHandler concertTaskHandler = new ConcertTaskHandler(concertTaskService);
         ExternalTaskHandler inviteeTaskHandler = new InviteeTaskHandler(inviteeTaskService);
@@ -58,6 +58,6 @@ public class Setup {
 
 
         // |----- db setup -----|
-        Repository.setDatabaseCredentials("jdbc:postgresql://localhost:5432/concert-ticket-watcher-db", "admin", "1234");
+        Repository.setDatabaseCredentials("jdbc:postgresql://localhost:5432/concertdb", "admin", "admin");
     }
 }

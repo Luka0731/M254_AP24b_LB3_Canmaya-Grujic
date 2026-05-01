@@ -3,4 +3,7 @@ package ch.concertticketwatcherengine.component.model;
 import ch.concertticketwatcherengine.core.generic.Model;
 
 public class Ticket extends Model {
+    public boolean available;
+    public String url;
+    public String price;
 }

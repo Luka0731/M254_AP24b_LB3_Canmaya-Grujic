@@ -88,7 +88,7 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
     <bpmn:association id="Association_01pstm2" associationDirection="None" sourceRef="TextAnnotation_0j6ckmy" targetRef="UserTask_StartNewArtistWatch" />
   </bpmn:collaboration>
   <bpmn:process id="Process_User" isExecutable="true" camunda:historyTimeToLive="18250">
-    <bpmn:userTask id="UserTask_StartNewArtistWatch" name="Start new Artist Watch" camunda:formRef="StartNewArtistWatch" camunda:formRefBinding="latest">
+    <bpmn:userTask id="UserTask_StartNewArtistWatch" camunda:assignee="demo" name="Start new Artist Watch" camunda:formRef="StartNewArtistWatch" camunda:formRefBinding="latest">
       <bpmn:incoming>Flow_1hln8rj</bpmn:incoming>
       <bpmn:outgoing>Flow_13z5feh</bpmn:outgoing>
     </bpmn:userTask>
@@ -97,7 +97,7 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
       <bpmn:outgoing>Flow_1kquxeh</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_05v7yyh" messageRef="Message_ConcertAnnounced" />
     </bpmn:intermediateCatchEvent>
-    <bpmn:userTask id="UserTask_FillInConcertSettingsForum" name="Fill in concert settings forum" camunda:formRef="FillInConcertSettingsForm" camunda:formRefBinding="latest">
+    <bpmn:userTask id="UserTask_FillInConcertSettingsForum" camunda:assignee="demo" name="Fill in concert settings forum" camunda:formRef="FillInConcertSettingsForm" camunda:formRefBinding="latest">
       <bpmn:incoming>Flow_1kquxeh</bpmn:incoming>
       <bpmn:outgoing>Flow_00gb1ca</bpmn:outgoing>
     </bpmn:userTask>
@@ -146,7 +146,7 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
       <bpmn:conditionExpression>${inviteeUsernames == null || inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_1ckxn52" sourceRef="Gateway_OtherUsersInvited-User" targetRef="CatchEvent_WaitForInvitationResult">
-      <bpmn:conditionExpression>${inviteeUsernames != null && !inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
+      <bpmn:conditionExpression>${inviteeUsernames != null &amp;&amp; !inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_16m86sh" sourceRef="CatchEvent_WaitForInvitationResult" targetRef="UserTask_ViewInvatationsResult" />
     <bpmn:sequenceFlow id="Flow_12bgz2s" sourceRef="UserTask_ViewInvatationsResult" targetRef="EndEvent_User" />
@@ -207,7 +207,7 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
       </bpmn:dataOutputAssociation>
       <bpmn:messageEventDefinition id="MessageEventDefinition_0gl7f77" messageRef="Message_UserReply" />
     </bpmn:intermediateCatchEvent>
-    <bpmn:sendTask id="SendTask_AnnounceConcertToUser" name="Announce concert to user">
+    <bpmn:sendTask id="SendTask_AnnounceConcertToUser" name="Announce concert to user" camunda:expression="${true}">
       <bpmn:incoming>Flow_09h9ybc</bpmn:incoming>
       <bpmn:outgoing>Flow_1r803y6</bpmn:outgoing>
       <bpmn:property id="Property_1lqqcxg" name="__targetRef_placeholder" />
@@ -235,7 +235,7 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
         <bpmn:targetRef>Property_1d246ge</bpmn:targetRef>
       </bpmn:dataInputAssociation>
     </bpmn:serviceTask>
-    <bpmn:sendTask id="SendTask_ShowUserInvitationResults" name="Show user invitation results">
+    <bpmn:sendTask id="SendTask_ShowUserInvitationResults" name="Show user invitation results" camunda:expression="${true}">
       <bpmn:incoming>Flow_1gsaohg</bpmn:incoming>
       <bpmn:outgoing>Flow_0i2olbt</bpmn:outgoing>
       <bpmn:property id="Property_0p8z6mu" name="__targetRef_placeholder" />
@@ -277,17 +277,14 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
       <bpmn:dataOutputAssociation id="DataOutputAssociation_1ui5wqq">
         <bpmn:targetRef>DataObjectReference_ConcertSettingsEV</bpmn:targetRef>
       </bpmn:dataOutputAssociation>
-      <bpmn:multiInstanceLoopCharacteristics isSequential="false">
-        <bpmn:loopCardinality xsi:type="bpmn:tFormalExpression">${inviteeList.size()}</bpmn:loopCardinality>
-        <bpmn:loopDataInputRef>inviteeList</bpmn:loopDataInputRef>
-        <bpmn:inputDataItem id="InputDataItem_invitee" name="invitee" />
+      <bpmn:multiInstanceLoopCharacteristics isSequential="false" camunda:collection="${inviteeList}" camunda:elementVariable="invitee">
       </bpmn:multiInstanceLoopCharacteristics>
       <bpmn:startEvent id="StartEvent_SubProcess-SendInvitations">
         <bpmn:outgoing>Flow_174fo2d</bpmn:outgoing>
       </bpmn:startEvent>
       <bpmn:sequenceFlow id="Flow_174fo2d" sourceRef="StartEvent_SubProcess-SendInvitations" targetRef="SendTask_InviteUser" />
       <bpmn:sequenceFlow id="Flow_13kdgq5" sourceRef="SendTask_InviteUser" targetRef="CatchEvent_WaitForInvitationReply" />
-      <bpmn:sendTask id="SendTask_InviteUser" name="invite user">
+      <bpmn:sendTask id="SendTask_InviteUser" name="invite user" camunda:expression="${true}">
         <bpmn:incoming>Flow_174fo2d</bpmn:incoming>
         <bpmn:outgoing>Flow_13kdgq5</bpmn:outgoing>
       </bpmn:sendTask>
@@ -327,7 +324,7 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
       <bpmn:conditionExpression>${isGoing == false}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_18kthq3" name="yes" sourceRef="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem" targetRef="ServiceTask_ValidateAndResolveInviteeUsernames">
-      <bpmn:conditionExpression>${inviteeUsernames != null && !inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
+      <bpmn:conditionExpression>${inviteeUsernames != null &amp;&amp; !inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_0lqa507" name="no" sourceRef="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem" targetRef="ExclusiveGateway_Alignment">
       <bpmn:conditionExpression>${inviteeUsernames == null || inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
