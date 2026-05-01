@@ -1,0 +1,34 @@
+//////////////////////////////////////
+/              ToDo-List             /
+//////////////////////////////////////
+
+## Planing ##
+X| get Elif understanding the project idea and the bpmn diagram
+X| show the theacher the idea of our project, and ask if this is enaught or too much
+*| arbeitsaufteilung
+X| ask the teacher, if we can work in the vacation on the project
+
+## Backend ##
+X| create github Repository
+*| create java project and think of a plan on how to orginiise and split the code
+*| create db
+*| program announcement service watcher
+*| program username resolver service watcher
+*| program ticket availabillety watcher
+
+## Caumunda ##
+X| give every element good ids
+X| create all forums that are needed
+/| finish StartNewArtistWatch.form (with design)
+*| finish FillInConcertSettingsForm.form (with design)
+*| finish RespondToInvitation.form (with design)
+*| finnish ViewInvitationResults.form (with design)
+*| create a working flow
+*| make a nother comment empty bpmn diagram (but only if everything is right with the rn diagram and it works)
+*| somehow connect everything together and make it work
+
+## Other ##
+*| testing (not documented, just testing to go sure that eveything works as intended)
+*| wright docu
+*| create presentation
+
