@@ -21,6 +21,7 @@ dependencies {
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation 'org.glassfish.jaxb:jaxb-runtime:2.3.1'
     implementation 'org.json:json:20240303'
+    implementation 'com.sun.mail:jakarta.mail:2.0.1'
 }
 
 java {
@@ -51,4 +52,9 @@ test {
  * ---
  * A library for making HTTP requests from Java. You need this to call the Ticketmaster API and the ip-api.com
  * geolocation API. Without this Java can't make any web requests to external services.
+ *
+ * Others
+ * ---
+ * Technically their are more libraries (ex. a json reader and a email sender), that arent integral for the backend
+ * its structure, so there not separately listed.
  */

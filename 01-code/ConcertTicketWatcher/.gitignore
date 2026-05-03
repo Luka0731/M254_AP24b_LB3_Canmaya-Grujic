@@ -41,3 +41,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### propertie files, where your api key is###
+src/main/resources/config.properties

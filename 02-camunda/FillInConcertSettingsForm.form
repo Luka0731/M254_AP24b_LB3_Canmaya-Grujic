@@ -1,57 +1,16 @@
 {
   "components": [
     {
-      "text": "# A CONDCERT WAS FOUND!!\n\n\n\nThe music artist that you set up a watcher for, announced that they will have a concert in your area soon! ",
-      "type": "text",
-      "layout": {
-        "row": "Row_003erdn",
-        "columns": null
-      },
-      "id": "Field_0lxzago"
-    },
-    {
-      "type": "separator",
-      "layout": {
-        "row": "Row_0o1zqlf",
-        "columns": null
-      },
-      "id": "Field_04akmwb"
-    },
-    {
-      "type": "image",
-      "layout": {
-        "row": "Row_1b46z4e",
-        "columns": null
-      },
-      "id": "Field_0mmuq6s",
-      "source": "=eventImageUrl",
-      "alt": "Image couldent be loaded!"
-    },
-    {
-      "content": "<h3>{{eventName}}</h3>\n<p>Location: {{eventVenue}}, {{eventCity}}</p>\n<p>Date: {{eventDate}}</p>\n<p>Price: {{eventPrice}}</p>\n<a href=\"{{eventUrl}}\" target=\"_blank\">Click here to buy tickets or to find out more about the Event!</a>",
-      "type": "html",
+      "label": "Event",
+      "type": "textfield",
       "layout": {
         "row": "Row_0r7ejiu",
         "columns": null
       },
-      "id": "Field_17c6pnw"
-    },
-    {
-      "type": "separator",
-      "layout": {
-        "row": "Row_00ye3o5",
-        "columns": null
-      },
-      "id": "Field_0nnhdqa"
-    },
-    {
-      "text": "## Further questions\n\nThe Ticket Watcher isnt done with its jobe yet!",
-      "type": "text",
-      "layout": {
-        "row": "Row_1x7xhi8",
-        "columns": null
-      },
-      "id": "Field_0nxay28"
+      "id": "Field_17c6pnw",
+      "key": "eventName",
+      "disabled": true,
+      "description": "Location: {{eventVenue}}, {{eventCity}} | Date: {{eventDate}} | Price: {{eventPrice}}"
     },
     {
       "label": "I want to go to the Concert",
@@ -62,7 +21,7 @@
       },
       "id": "Field_0sellvr",
       "key": "isGoing",
-      "description": "Are you visiting the concert? if so we will send you a email reminder 30mins bevor the concert tickets releas, so you can get your hands on them too!",
+      "description": "Check this if you are planning to attend. You will receive an email reminder 30 minutes before tickets go on sale.",
       "validate": {
         "required": false
       }
@@ -76,21 +35,19 @@
       },
       "id": "Field_0uz0o4l",
       "key": "inviteeUsernames",
-      "disabled": false,
       "validate": {
         "minLength": ""
       },
-      "properties": {},
-      "description": "Enter their Camunda usernames separated by commas. Note: they must be registered users of this Caumunda system. If you wright a wrong name, it will just skip this person."
+      "description": "Enter Camunda usernames separated by commas. They must be registered users of this system. Wrong names will simply be skipped."
     }
   ],
   "type": "default",
   "id": "FillInConcertSettingsForm",
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.20.0",
   "exporter": {
     "name": "Camunda Modeler",
     "version": "5.44.0"
   },
-  "executionPlatform": "Camunda Platform",
-  "executionPlatformVersion": "7.24.0",
   "schemaVersion": 19
 }

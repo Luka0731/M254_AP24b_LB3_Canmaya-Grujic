@@ -1,0 +1,81 @@
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body, form { font-family: Arial, sans-serif; font-size: 14px; color: #414141; background: #fff; }
+  .tm-form { max-width: 680px; padding: 32px; background: #fff; }
+  .tm-logo { margin-bottom: 20px; }
+  .tm-logo img { height: 32px; }
+  .tm-header { border-left: 4px solid #009cde; padding-left: 14px; margin-bottom: 28px; }
+  .tm-header h1 { font-size: 1.3em; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; color: #414141; }
+  .tm-header p { margin-top: 8px; font-size: 0.9em; color: #666; line-height: 1.6; }
+  .tm-section { margin-bottom: 24px; }
+  .tm-section-title { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.1em; color: #009cde; font-weight: bold; margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid #e5e5e5; }
+  .tm-row { display: flex; gap: 16px; margin-bottom: 14px; }
+  .tm-field { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+  .tm-field label { font-size: 0.8em; font-weight: bold; color: #414141; }
+  .tm-field input[type="text"], .tm-field input[type="number"] { border: 1px solid #ccc; border-radius: 3px; padding: 9px 10px; font-size: 0.95em; font-family: Arial, sans-serif; color: #414141; outline: none; width: 100%; transition: border-color 0.15s; }
+  .tm-field input:focus { border-color: #009cde; }
+  .tm-hint { font-size: 0.75em; color: #888; }
+  .tm-note { font-size: 0.8em; color: #888; margin-top: 8px; }
+  .tm-link { color: #009cde; text-decoration: none; font-size: 0.88em; }
+  .tm-link:hover { text-decoration: underline; }
+</style>
+
+<form role="form">
+  <div class="tm-form">
+
+    <div class="tm-logo">
+      <img src="https://dl.svgcdn.com/png/simple-icons/ticketmaster-400.png" alt="Ticketmaster" />
+    </div>
+
+    <div class="tm-header">
+      <h1>Concert Ticket Watcher</h1>
+      <p>
+        Welcome! You have started the Concert Ticket Watcher. Here you can track any music artist from Ticketmaster.
+        You and the mates you invite will be notified when the artist announces a concert and when tickets go on sale.
+        <br><br>
+        To set up a watcher, fill in the required details below. After that, you don't have to worry anymore —
+        you will be informed as soon as the artist performs a concert in your area.
+      </p>
+    </div>
+
+    <div class="tm-section">
+      <div class="tm-section-title">Concert Details</div>
+
+      <p style="margin-bottom: 10px;">
+        <a href="https://www.ticketmaster.com" target="_blank" class="tm-link">
+          Click here to search for your artist on Ticketmaster
+        </a>
+      </p>
+
+      <div class="tm-row">
+        <div class="tm-field">
+          <label for="artistName">Artist Name *</label>
+          <input type="text" id="artistName" cam-variable-name="artistName" cam-variable-type="String" required />
+          <span class="tm-hint">(Please enter the artist name exactly as it appears on Ticketmaster)</span>
+        </div>
+        <div class="tm-field">
+          <label for="maxDistanceKm">Max Distance (km) *</label>
+          <input type="number" id="maxDistanceKm" cam-variable-name="maxDistanceKm" cam-variable-type="Double" min="0" max="40075" value="150" required />
+        </div>
+      </div>
+    </div>
+
+    <div class="tm-section">
+      <div class="tm-section-title">About You</div>
+
+      <div class="tm-row">
+        <div class="tm-field">
+          <label for="userName">Your Name *</label>
+          <input type="text" id="userName" cam-variable-name="userName" cam-variable-type="String" required />
+        </div>
+        <div class="tm-field">
+          <label for="email">Email Address *</label>
+          <input type="text" id="email" cam-variable-name="email" cam-variable-type="String" required />
+        </div>
+      </div>
+
+      <p class="tm-note">Note: You will receive an email once your watcher has been successfully set up.</p>
+    </div>
+
+  </div>
+</form>

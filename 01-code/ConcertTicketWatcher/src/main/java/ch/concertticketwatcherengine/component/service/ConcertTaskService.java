@@ -4,72 +4,106 @@ import ch.concertticketwatcherengine.component.fetcher.GeolocationFetcher;
 import ch.concertticketwatcherengine.component.fetcher.TicketmasterEventFetcher;
 import ch.concertticketwatcherengine.component.model.Event;
 import ch.concertticketwatcherengine.component.model.Location;
+import ch.concertticketwatcherengine.component.repository.EventWatchRepository;
+import ch.concertticketwatcherengine.core.exception.DatabaseException;
 import ch.concertticketwatcherengine.core.generic.Service;
-
+import ch.concertticketwatcherengine.core.util.Log;
 import java.util.HashMap;
 import java.util.Map;
+import ch.concertticketwatcherengine.core.util.ThreadUtil;
 
 public class ConcertTaskService extends Service {
 
+    private static final long CHECK_INTERVAL_HOURS = 12;
+    private static final long MAX_WAIT_YEARS = 50;
+    private static final long MAX_CHECKS = MAX_WAIT_YEARS * ThreadUtil.DAYS_IN_YEAR * ThreadUtil.HOURS_IN_DAY / CHECK_INTERVAL_HOURS;
     private final GeolocationFetcher geolocationFetcher;
     private final TicketmasterEventFetcher eventFetcher;
+    private final EventWatchRepository eventWatchRepository;
 
-    public ConcertTaskService(GeolocationFetcher geolocationFetcher,
-                              TicketmasterEventFetcher eventFetcher) {
-        this.geolocationFetcher = geolocationFetcher;
-        this.eventFetcher = eventFetcher;
+    public ConcertTaskService(GeolocationFetcher geolocationFetcher, TicketmasterEventFetcher eventFetcher, EventWatchRepository eventWatchRepository) {
+        this.geolocationFetcher   = geolocationFetcher;
+        this.eventFetcher         = eventFetcher;
+        this.eventWatchRepository = eventWatchRepository;
     }
 
     @Override
     public void execute() {
-        Object artistObj = receivedData.get("artistName");
-        String artistName = (artistObj == null) ? "" : artistObj.toString();
-        if (artistName.isBlank()) {
-            throw new RuntimeException("artistName cannot be empty");
-        }
-        String maxDistanceKm = String.valueOf(receivedData.getOrDefault("maxDistanceKm", "100"));
-        String userName      = (String) receivedData.get("userName");
+        String   artistName    = readArtistName();
+        String   maxDistanceKm = readMaxDistance();
+        Location location      = fetchUserLocation();
 
-        System.out.println("[ConcertTaskService] Watching for: " + artistName + " (user: " + userName + ")");
-
-        try {
-            // 1. Get user's location from their IP
-            Location location = geolocationFetcher.fetch(new HashMap<>());
-            if (location == null) {
-                throw new Exception("Could not determine user location");
+        for (long attempt = 0; attempt < MAX_CHECKS; attempt++) {
+            Event event = findNewEvent(artistName, maxDistanceKm, location);
+            if (event != null) {
+                putEventIntoReturnData(event);
+                return;
             }
-            String latlong = location.latitude + "," + location.longitude;
-            System.out.println("[ConcertTaskService] User location: " + location.city + " (" + latlong + ")");
+            sleep();
+        }
 
-            // 2. Search Ticketmaster for events near the user
+        throw new RuntimeException("{ConcertTaskService} Watcher timed out after " + MAX_WAIT_YEARS + " years for: " + artistName);
+    }
+
+
+
+    // |----- helper methods -----|
+
+    private String readArtistName() {
+        String name = (String) receivedData.getOrDefault("artistName", "");
+        if (name.isBlank()) throw new RuntimeException("{ConcertTaskService} artistName cannot be empty");
+        return name;
+    }
+
+    private String readMaxDistance() {
+        return String.valueOf(receivedData.getOrDefault("maxDistanceKm", "100"));
+    }
+
+    private Location fetchUserLocation() {
+        try {
+            Location location = geolocationFetcher.fetch(new HashMap<>());
+            if (location == null) throw new RuntimeException("{ConcertTaskService} Geolocation returned null");
+            return location;
+        } catch (Exception e) {
+            throw new RuntimeException("{ConcertTaskService} Geolocation failed — aborting: " + e.getMessage());
+        }
+    }
+
+    private Event findNewEvent(String artistName, String maxDistanceKm, Location location) {
+        try {
             Map<String, String> filters = new HashMap<>();
             filters.put("artistName", artistName);
-            filters.put("latlong", latlong);
+            filters.put("latlong", location.getLatitude() + "," + location.getLongitude());
             filters.put("radius", maxDistanceKm);
 
             Event event = eventFetcher.fetch(filters);
+            if (event == null) return null;
 
-            if (event == null) {
-                // No concert found — throw so Camunda keeps the token waiting
-                throw new Exception("No concert found yet for: " + artistName);
-            }
+            if (eventWatchRepository.hasSeenEvent(event.getId())) return null;
 
-            System.out.println("[ConcertTaskService] Concert found: " + event.name + " @ " + event.venue);
+            eventWatchRepository.markEventAsSeen(event.getId());
+            return event;
 
-            // 3. Put event data into return variables for Camunda
-            returnData.put("eventName",     event.name);
-            returnData.put("eventVenue",    event.venue);
-            returnData.put("eventCity",     event.city);
-            returnData.put("eventDate",     event.date);
-            returnData.put("eventPrice",    event.priceMin);
-            returnData.put("eventUrl",      event.url);
-            returnData.put("eventImageUrl", event.imageUrl);
-            returnData.put("eventId",       event.id);
-
+        } catch (DatabaseException e) {
+            throw new RuntimeException("{ConcertTaskService} DB error — aborting: " + e.getMessage());
         } catch (Exception e) {
-            System.out.println("[ConcertTaskService] ERROR: " + e.getMessage());
-            // Re-throw so Handler can report failure back to Camunda
-            throw new RuntimeException(e.getMessage());
+            Log.error("{ConcertTaskService} Fetch error, retrying next cycle: " + e.getMessage());
+            return null;
         }
+    }
+
+    private void putEventIntoReturnData(Event event) {
+        returnData.put("eventName", event.getName());
+        returnData.put("eventVenue", event.getVenue());
+        returnData.put("eventCity", event.getCity());
+        returnData.put("eventDate", event.getDate());
+        returnData.put("eventPrice", event.getPriceMin());
+        returnData.put("eventUrl", event.getUrl());
+        returnData.put("eventImageUrl", event.getImageUrl());
+        returnData.put("eventId", event.getId());
+    }
+
+    private void sleep() {
+        ThreadUtil.sleepHours(CHECK_INTERVAL_HOURS);
     }
 }

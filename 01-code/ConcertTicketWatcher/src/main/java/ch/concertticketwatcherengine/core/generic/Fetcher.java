@@ -1,5 +1,6 @@
 package ch.concertticketwatcherengine.core.generic;
 
+import ch.concertticketwatcherengine.core.util.Log;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -16,12 +17,12 @@ public abstract class Fetcher<M extends Model> {
         BufferedReader reader = new BufferedReader(new InputStreamReader(api.getInputStream()));
         StringBuilder response = new StringBuilder();
         String line;
-        while ((line = reader.readLine()) != null) {
-            response.append(line);
-        }
+        while ((line = reader.readLine()) != null) response.append(line);
         reader.close();
 
-        return mapResponseJsonToModel(response);
+        M result = mapResponseJsonToModel(response);
+        Log.success("{" + getClass().getSimpleName() + "} API fetch successful");
+        return result;
     }
 
     /**

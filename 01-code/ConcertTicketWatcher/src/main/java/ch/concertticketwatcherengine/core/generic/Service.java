@@ -1,7 +1,6 @@
 package ch.concertticketwatcherengine.core.generic;
 
 import org.camunda.bpm.client.task.ExternalTaskService;
-
 import java.util.Map;
 
 public abstract class Service {

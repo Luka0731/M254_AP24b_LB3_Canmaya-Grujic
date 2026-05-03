@@ -1,66 +1,60 @@
 package ch.concertticketwatcherengine.component.service;
 
+import ch.concertticketwatcherengine.component.fetcher.CamundaUserFetcher;
+import ch.concertticketwatcherengine.component.model.CamundaUser;
 import ch.concertticketwatcherengine.core.generic.Service;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import ch.concertticketwatcherengine.core.util.Log;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InviteeTaskService extends Service {
 
-    private static final String CAMUNDA_BASE = "http://localhost:8080/engine-rest";
+    private final CamundaUserFetcher camundaUserFetcher;
+
+    public InviteeTaskService(CamundaUserFetcher camundaUserFetcher) {
+        this.camundaUserFetcher = camundaUserFetcher;
+    }
 
     @Override
     public void execute() {
         String raw = (String) receivedData.getOrDefault("inviteeUsernames", "");
-        System.out.println("[InviteeTaskService] Raw invitee input: " + raw);
-
-        List<String> validUsernames = new ArrayList<>();
-
-        if (raw != null && !raw.isBlank()) {
-            String[] parts = raw.split(",");
-            for (String part : parts) {
-                String username = part.strip();
-                if (!username.isEmpty() && isValidCamundaUser(username)) {
-                    validUsernames.add(username);
-                    System.out.println("[InviteeTaskService] Valid user: " + username);
-                } else {
-                    System.out.println("[InviteeTaskService] Skipping unknown user: " + username);
-                }
-            }
-        }
-
-        returnData.put("inviteeList", validUsernames);
-        System.out.println("[InviteeTaskService] Final invitee list: " + validUsernames);
+        List<Map<String, String>> invitees = resolveInvitees(raw);
+        returnData.put("inviteeList", invitees);
     }
 
-    // Checks if a username exists in Camunda by calling the identity REST API
-    private boolean isValidCamundaUser(String username) {
+
+
+    // |----- helper methods -----|
+
+    private List<Map<String, String>> resolveInvitees(String raw) {
+        List<Map<String, String>> result = new ArrayList<>();
+        if (raw == null || raw.isBlank()) return result;
+
+        for (String part : raw.split(",")) {
+            String username = part.strip();
+            if (!username.isEmpty()) processUsername(username, result);
+        }
+        return result;
+    }
+
+    private void processUsername(String username, List<Map<String, String>> result) {
         try {
-            URL url = new URL(CAMUNDA_BASE + "/user?id=" + username);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Accept", "application/json");
+            Map<String, String> filters = new HashMap<>();
+            filters.put("username", username);
 
-            int code = conn.getResponseCode();
-            if (code != 200) return false;
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) sb.append(line);
-            reader.close();
-
-            // Camunda returns an array (if existing)
-            String body = sb.toString().trim();
-            return !body.equals("[]");
+            CamundaUser user = camundaUserFetcher.fetch(filters);
+            if (user != null) {
+                Map<String, String> invitee = new HashMap<>();
+                invitee.put("username", user.getUsername());
+                invitee.put("email",    user.getEmail());
+                result.add(invitee);
+            } else {
+                Log.error("{InviteeTaskService} Skipping unknown user or no email set: " + username);
+            }
         } catch (Exception e) {
-            System.out.println("[InviteeTaskService] Could not validate user '" + username + "': " + e.getMessage());
-            return false;
+            Log.error("{InviteeTaskService} Could not resolve '" + username + "': " + e.getMessage());
         }
     }
 }
