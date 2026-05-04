@@ -23,25 +23,25 @@ public abstract class Repository<M extends Model> {
      * Sets the database credentials and automatically runs init.sql to set up the schema.
      */
     public static void setDatabaseCredentials(String url, String user, String password) {
-        Repository.url = url;
+        Repository.url  = url;
         Repository.user = user;
         Repository.password = password;
+        Log.debug("{Repository} Connecting to: " + url + " as user: " + user);
         runInitSql();
     }
 
     /**
      * Automatically runs init.sql from resources on startup.
-     * Also creates tables if they don't exist yet.
+     * Creates tables if they don't exist yet.
      */
     private static void runInitSql() {
         try (InputStream is = Repository.class.getClassLoader().getResourceAsStream("init.sql")) {
-            if (is == null) {
-                throw new DatabaseException("runInitSql", "init.sql not found in resources");
-            }
+            if (is == null) throw new DatabaseException("runInitSql", "init.sql not found in resources");
             String sql = new BufferedReader(new InputStreamReader(is)).lines().collect(Collectors.joining("\n"));
-
+            Log.debug("{Repository} Running init.sql: " + sql.replace("\n", " "));
             try (Connection conn = DriverManager.getConnection(url, user, password);
-                 Statement stmt = conn.createStatement()) {
+                 Statement stmt  = conn.createStatement()) {
+                Log.debug("{Repository} Connected to DB successfully");
                 stmt.execute(sql);
                 Log.success("Database schema initialized successfully.");
             }
@@ -58,6 +58,7 @@ public abstract class Repository<M extends Model> {
      */
     protected final Connection getConnection() throws DatabaseException {
         try {
+            Log.debug("{Repository} Opening DB connection");
             return DriverManager.getConnection(url, user, password);
         } catch (Exception e) {
             throw new DatabaseException("getConnection", e.getMessage());

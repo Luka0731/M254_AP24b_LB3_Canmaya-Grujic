@@ -27,7 +27,7 @@ public abstract class Handler implements ExternalTaskHandler {
         for (String key : defineReceivedData()) {
             receivedData.put(key, externalTask.getVariable(key));
         }
-        Log.info("[" + externalTask.getTopicName() + "] Received variables: " + receivedData.keySet());
+        Log.debug("{" + externalTask.getTopicName() + "} Received variables: " + receivedData);
         returnData = new HashMap<>();
         for (String key : defineReturnData()) {
             returnData.put(key, null);
@@ -37,8 +37,8 @@ public abstract class Handler implements ExternalTaskHandler {
         // |----- run service -----|
         try {
             service.execute();
-        }  catch (Exception e) {
-            Log.error("{" + externalTask.getTopicName() + "} Task failed. This might be international: " + e.getMessage());
+        } catch (Exception e) {
+            Log.error("{" + externalTask.getTopicName() + "} Task failed. This might be intentional: " + e.getMessage());
             externalTaskService.handleFailure(externalTask, e.getMessage(), null, 0, 0L);
             return;
         }
@@ -46,9 +46,10 @@ public abstract class Handler implements ExternalTaskHandler {
         // |----- end task & return data -----|
         if (returnData == null) {
             externalTaskService.complete(externalTask);
-            Log.info("{" + service.getReturnData() + "} Task completed. Returning variables: " + returnData.keySet());
-        }  else {
+            Log.success("{" + externalTask.getTopicName() + "} Task completed. No return variables.");
+        } else {
             returnData = service.getReturnData();
+            Log.debug("{" + externalTask.getTopicName() + "} Returning variables: " + returnData);
             externalTaskService.complete(externalTask, returnData);
         }
     }

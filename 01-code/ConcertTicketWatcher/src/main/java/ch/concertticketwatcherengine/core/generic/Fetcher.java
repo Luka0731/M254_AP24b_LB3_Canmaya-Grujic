@@ -10,9 +10,15 @@ import java.util.Map;
 public abstract class Fetcher<M extends Model> {
 
     public final M fetch(Map<String, String> filters) throws Exception {
-        HttpURLConnection api = (HttpURLConnection) new URL(buildUrl(filters)).openConnection();
+        String url = buildUrl(filters);
+        Log.debug("{" + getClass().getSimpleName() + "} Fetching URL: " + url);
+
+        HttpURLConnection api = (HttpURLConnection) new URL(url).openConnection();
         api.setRequestMethod("GET");
         api.setRequestProperty("Accept", "application/json");
+
+        int status = api.getResponseCode();
+        Log.debug("{" + getClass().getSimpleName() + "} Response status: " + status);
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(api.getInputStream()));
         StringBuilder response = new StringBuilder();
@@ -20,7 +26,10 @@ public abstract class Fetcher<M extends Model> {
         while ((line = reader.readLine()) != null) response.append(line);
         reader.close();
 
+        Log.debug("{" + getClass().getSimpleName() + "} Raw response: " + response);
+
         M result = mapResponseJsonToModel(response);
+        Log.debug("{" + getClass().getSimpleName() + "} Mapped result: " + (result == null ? "null (nothing found)" : result.getClass().getSimpleName()));
         Log.success("{" + getClass().getSimpleName() + "} API fetch successful");
         return result;
     }
@@ -36,10 +45,10 @@ public abstract class Fetcher<M extends Model> {
 
     /**
      * Parse the raw JSON response and extract only the fields you need.
-     * Return them as a flat Map to be passed back to the service.
+     * Return null if no relevant data was found in the response.
      *
      * @param response the raw JSON response from the API
-     * @return a Map containing only the data your service needs
+     * @return the mapped model, or null if nothing was found
      */
     protected abstract M mapResponseJsonToModel(StringBuilder response) throws Exception;
 }

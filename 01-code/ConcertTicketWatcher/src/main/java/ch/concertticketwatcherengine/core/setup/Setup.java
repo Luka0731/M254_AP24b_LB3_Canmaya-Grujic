@@ -4,6 +4,7 @@ import ch.concertticketwatcherengine.component.fetcher.CamundaUserFetcher;
 import ch.concertticketwatcherengine.component.fetcher.GeolocationFetcher;
 import ch.concertticketwatcherengine.component.fetcher.TicketmasterEventFetcher;
 import ch.concertticketwatcherengine.component.fetcher.TicketmasterTicketFetcher;
+import ch.concertticketwatcherengine.component.messenger.*;
 import ch.concertticketwatcherengine.component.repository.EventWatchRepository;
 import ch.concertticketwatcherengine.component.service.ConcertTaskService;
 import ch.concertticketwatcherengine.component.service.EmailService;
@@ -47,6 +48,13 @@ public class Setup {
         ExternalTaskHandler concertTaskHandler = new ConcertTaskHandler(concertTaskService);
         ExternalTaskHandler inviteeTaskHandler = new InviteeTaskHandler(inviteeTaskService);
         ExternalTaskHandler ticketTaskHandler  = new TicketTaskHandler(ticketTaskService);
+        // messengers
+        ExternalTaskHandler systemStartMessenger = new SystemStartMessenger();
+        ExternalTaskHandler concertAnnouncedMessenger = new ConcertAnnouncedMessenger();
+        ExternalTaskHandler userReplyMessenger = new UserReplyMessenger();
+        ExternalTaskHandler inviteeStartMessenger = new InviteeStartMessenger();
+        ExternalTaskHandler invitationReplyMessenger = new InvitationReplyMessenger();
+        ExternalTaskHandler invitationResultMessenger = new InvitationResultMessenger();
         Log.success("Components setup done");
 
 
@@ -55,6 +63,7 @@ public class Setup {
         ExternalTaskClient camundaClient = ExternalTaskClient.create()
                 .baseUrl("http://localhost:8080/engine-rest")
                 .build();
+        // task workers
         camundaClient.subscribe("fetch-events")
                 .handler(concertTaskHandler)
                 .open();
@@ -63,6 +72,25 @@ public class Setup {
                 .open();
         camundaClient.subscribe("fetch-ticket-availability")
                 .handler(ticketTaskHandler)
+                .open();
+        // messaging workers
+        camundaClient.subscribe("send-system-start")
+                .handler(systemStartMessenger)
+                .open();
+        camundaClient.subscribe("send-concert-announced")
+                .handler(concertAnnouncedMessenger)
+                .open();
+        camundaClient.subscribe("send-user-reply")
+                .handler(userReplyMessenger)
+                .open();
+        camundaClient.subscribe("send-invitee-start")
+                .handler(inviteeStartMessenger)
+                .open();
+        camundaClient.subscribe("send-invitation-reply")
+                .handler(invitationReplyMessenger)
+                .open();
+        camundaClient.subscribe("send-invitation-result")
+                .handler(invitationResultMessenger)
                 .open();
         Log.success("Camunda setup done");
         Log.success("All setup done");

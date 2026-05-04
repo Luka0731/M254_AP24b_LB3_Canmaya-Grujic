@@ -10,12 +10,12 @@
     <bpmn:participant id="Participant_User" name="User" processRef="Process_User" />
     <bpmn:participant id="Participant_ConcertTicketWatcherSystem" name="Concert ticket watcher system" processRef="Process_ConcertTicketWatcherSystem" />
     <bpmn:participant id="Participant_Invitee" name="Invitee" processRef="Process_Invitee" />
-    <bpmn:messageFlow id="Flow_15qqc1w" sourceRef="UserTask_StartNewArtistWatch" targetRef="MessageStartEvent_ConcertTicketWatcherSystem" />
-    <bpmn:messageFlow id="Flow_0u7hfx8" sourceRef="UserTask_FillInConcertSettingsForum" targetRef="CatchEvent_WaitForUserReply" />
-    <bpmn:messageFlow id="Flow_0ric1fi" sourceRef="SendTask_AnnounceConcertToUser" targetRef="CatchEvent_WaitForConcertAnnounced" />
-    <bpmn:messageFlow id="Flow_0usrnx6" sourceRef="SendTask_ShowUserInvitationResults" targetRef="CatchEvent_WaitForInvitationResult" />
-    <bpmn:messageFlow id="Flow_0lfp6kd" sourceRef="SubProcess_SendInvitations" targetRef="MessageStartEvent_Invitee" />
-    <bpmn:messageFlow id="Flow_16g5m3m" sourceRef="UserTask_Respond" targetRef="SubProcess_SendInvitations" />
+    <bpmn:messageFlow id="Flow_16g5m3m" sourceRef="ThrowEndEvent_InvitationResult" targetRef="SubProcess_SendInvitations" />
+    <bpmn:messageFlow id="Flow_0lfp6kd" sourceRef="SubProcess_SendInvitations" targetRef="CatchStartEvent_Invitee" />
+    <bpmn:messageFlow id="Flow_0u40nk4" sourceRef="ThrowEvent_SystemStart" targetRef="CatchStartEvent_ConcertTicketWatcherSystem" />
+    <bpmn:messageFlow id="Flow_1qiwum4" sourceRef="ThrowEvent_ConcertAnnounced" targetRef="CatchEvent_WaitForConcertAnnounced" />
+    <bpmn:messageFlow id="Flow_0hnj69t" sourceRef="ThrowEvent_InvatationResult" targetRef="CatchEvent_WaitForInvitationResult" />
+    <bpmn:messageFlow id="Flow_1tdeh3f" sourceRef="ThrowEvent_UserReply" targetRef="CatchEvent_WaitForUserReply" />
     <bpmn:textAnnotation id="TextAnnotation_1n3dpcw">
       <bpmn:text>artistName: string
 email: string
@@ -78,107 +78,199 @@ As this is a school project, several deliberate simplifications were made that w
 
 Note: the artist name must match exactly how Ticketmaster identifies the artist. The user types it in as free text. Typos or slight name variations will result in no events being found, with no feedback given to the user. This is a known technical debt.</bpmn:text>
     </bpmn:textAnnotation>
-    <bpmn:association id="Association_0x1nqe8" associationDirection="None" sourceRef="TextAnnotation_1veqmjy" targetRef="ServiceTask_FetchTicketAvailabilityAndSendEmail" />
-    <bpmn:association id="Association_0yu9lvm" associationDirection="None" sourceRef="ServiceTask_FetchEventsFromAPI" targetRef="TextAnnotation_1j7peb9" />
     <bpmn:association id="Association_0guf89o" associationDirection="None" sourceRef="TextAnnotation_0ffuv9b" targetRef="UserTask_FillInConcertSettingsForum" />
-    <bpmn:association id="Association_0or1u4f" associationDirection="None" sourceRef="TextAnnotation_07sv779" targetRef="SubProcess_SendInvitations" />
-    <bpmn:association id="Association_14qcl4k" associationDirection="None" sourceRef="ErrorBoundaryEvent_ProgramFails-FetchEventsFromAPI" targetRef="TextAnnotation_09h7iwf" />
-    <bpmn:association id="Association_1am5pyt" associationDirection="None" sourceRef="TextAnnotation_09h7iwf" targetRef="ErrorBoundaryEvent_ProgramFails-FetchTicketAvailabilityAndSendEmail" />
     <bpmn:association id="Association_1a0rbtb" associationDirection="None" sourceRef="TextAnnotation_137xhfd" targetRef="ServiceTask_ValidateAndResolveInviteeUsernames" />
-    <bpmn:association id="Association_01pstm2" associationDirection="None" sourceRef="TextAnnotation_0j6ckmy" targetRef="UserTask_StartNewArtistWatch" />
+    <bpmn:association id="Association_0yu9lvm" associationDirection="None" sourceRef="ServiceTask_FetchEventsFromAPI" targetRef="TextAnnotation_1j7peb9" />
+    <bpmn:association id="Association_14qcl4k" associationDirection="None" sourceRef="ErrorBoundaryEvent_ProgramFails-FetchEventsFromAPI" targetRef="TextAnnotation_09h7iwf" />
+    <bpmn:association id="Association_0or1u4f" associationDirection="None" sourceRef="TextAnnotation_07sv779" targetRef="SubProcess_SendInvitations" />
+    <bpmn:association id="Association_0x1nqe8" associationDirection="None" sourceRef="TextAnnotation_1veqmjy" targetRef="ServiceTask_FetchTicketAvailabilityAndSendEmail" />
   </bpmn:collaboration>
   <bpmn:process id="Process_User" isExecutable="true" camunda:historyTimeToLive="18250">
-    <bpmn:userTask id="UserTask_StartNewArtistWatch" camunda:assignee="demo" name="Start new Artist Watch" camunda:formRef="StartNewArtistWatch" camunda:formRefBinding="latest">
+    <bpmn:sequenceFlow id="Flow_1rdlhyb" sourceRef="UserTask_StartNewArtistWatch" targetRef="ThrowEvent_SystemStart" />
+    <bpmn:sequenceFlow id="Flow_1hln8rj" sourceRef="StartEvent_Main" targetRef="UserTask_StartNewArtistWatch" />
+    <bpmn:sequenceFlow id="Flow_1ckxn52" sourceRef="Gateway_OtherUsersInvited-User" targetRef="CatchEvent_WaitForInvitationResult">
+      <bpmn:conditionExpression>${inviteeUsernames != null &amp;&amp; !inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0566m1n" name="no" sourceRef="ExclusiveGateway_GoingToConcert-User" targetRef="EndEvent_UserDeclinedConcert-User">
+      <bpmn:conditionExpression>${isGoing == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1kquxeh" sourceRef="CatchEvent_WaitForConcertAnnounced" targetRef="UserTask_FillInConcertSettingsForum" />
+    <bpmn:sequenceFlow id="Flow_148b2h9" sourceRef="ThrowEvent_SystemStart" targetRef="CatchEvent_WaitForConcertAnnounced" />
+    <bpmn:userTask id="UserTask_StartNewArtistWatch" name="Start new Artist Watch" camunda:formRef="StartNewArtistWatch" camunda:formRefBinding="latest" camunda:assignee="demo">
       <bpmn:incoming>Flow_1hln8rj</bpmn:incoming>
-      <bpmn:outgoing>Flow_13z5feh</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1rdlhyb</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:intermediateCatchEvent id="CatchEvent_WaitForConcertAnnounced" name="Wait for concert announced">
-      <bpmn:incoming>Flow_13z5feh</bpmn:incoming>
-      <bpmn:outgoing>Flow_1kquxeh</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="MessageEventDefinition_05v7yyh" messageRef="Message_ConcertAnnounced" />
-    </bpmn:intermediateCatchEvent>
-    <bpmn:userTask id="UserTask_FillInConcertSettingsForum" camunda:assignee="demo" name="Fill in concert settings forum" camunda:formRef="FillInConcertSettingsForm" camunda:formRefBinding="latest">
+    <bpmn:startEvent id="StartEvent_Main">
+      <bpmn:outgoing>Flow_1hln8rj</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="UserTask_FillInConcertSettingsForum" name="Fill in concert settings forum" camunda:formRef="FillInConcertSettingsForm" camunda:formRefBinding="latest" camunda:assignee="demo">
       <bpmn:incoming>Flow_1kquxeh</bpmn:incoming>
-      <bpmn:outgoing>Flow_00gb1ca</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1qi51jw</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:exclusiveGateway id="ExclusiveGateway_GoingToConcert-User" name="Going to the concert?">
-      <bpmn:incoming>Flow_00gb1ca</bpmn:incoming>
+      <bpmn:incoming>Flow_10vn0pm</bpmn:incoming>
       <bpmn:outgoing>Flow_1dzzzxt</bpmn:outgoing>
       <bpmn:outgoing>Flow_0566m1n</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:endEvent id="EndEvent_UserDeclinedConcert-User">
-      <bpmn:incoming>Flow_0566m1n</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:endEvent id="EndEvent_UserDidntInviteAnyone">
-      <bpmn:incoming>Flow_05xzjxf</bpmn:incoming>
-    </bpmn:endEvent>
     <bpmn:exclusiveGateway id="Gateway_OtherUsersInvited-User" name="Other users invited?">
       <bpmn:incoming>Flow_1dzzzxt</bpmn:incoming>
       <bpmn:outgoing>Flow_05xzjxf</bpmn:outgoing>
       <bpmn:outgoing>Flow_1ckxn52</bpmn:outgoing>
     </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_UserDidntInviteAnyone">
+      <bpmn:incoming>Flow_05xzjxf</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="EndEvent_UserDeclinedConcert-User">
+      <bpmn:incoming>Flow_0566m1n</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1dzzzxt" name="yes" sourceRef="ExclusiveGateway_GoingToConcert-User" targetRef="Gateway_OtherUsersInvited-User">
+      <bpmn:conditionExpression>${isGoing == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_05xzjxf" name="no" sourceRef="Gateway_OtherUsersInvited-User" targetRef="EndEvent_UserDidntInviteAnyone">
+      <bpmn:conditionExpression>${inviteeUsernames == null || inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1qi51jw" sourceRef="UserTask_FillInConcertSettingsForum" targetRef="ThrowEvent_UserReply" />
+    <bpmn:intermediateThrowEvent id="ThrowEvent_UserReply">
+      <bpmn:incoming>Flow_1qi51jw</bpmn:incoming>
+      <bpmn:outgoing>Flow_10vn0pm</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_15dguir" messageRef="Message_UserReply" camunda:type="external" camunda:topic="send-user-reply" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:sequenceFlow id="Flow_10vn0pm" sourceRef="ThrowEvent_UserReply" targetRef="ExclusiveGateway_GoingToConcert-User" />
+    <bpmn:endEvent id="EndEvent_User">
+      <bpmn:incoming>Flow_12bgz2s</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="UserTask_ViewInvatationsResult" name="View invatations result" camunda:formRef="ViewInvitationResults" camunda:formRefBinding="latest">
+      <bpmn:incoming>Flow_16m86sh</bpmn:incoming>
+      <bpmn:outgoing>Flow_12bgz2s</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_12bgz2s" sourceRef="UserTask_ViewInvatationsResult" targetRef="EndEvent_User" />
+    <bpmn:sequenceFlow id="Flow_16m86sh" sourceRef="CatchEvent_WaitForInvitationResult" targetRef="UserTask_ViewInvatationsResult" />
+    <bpmn:intermediateThrowEvent id="ThrowEvent_SystemStart">
+      <bpmn:incoming>Flow_1rdlhyb</bpmn:incoming>
+      <bpmn:outgoing>Flow_148b2h9</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_17kwr5q" messageRef="Message_SystemStart" camunda:type="external" camunda:topic="send-system-start" />
+    </bpmn:intermediateThrowEvent>
     <bpmn:intermediateCatchEvent id="CatchEvent_WaitForInvitationResult" name="Wait for invitations result">
       <bpmn:incoming>Flow_1ckxn52</bpmn:incoming>
       <bpmn:outgoing>Flow_16m86sh</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_1v5fnq8" messageRef="Message_InvitationResult" />
     </bpmn:intermediateCatchEvent>
-    <bpmn:userTask id="UserTask_ViewInvatationsResult" name="View invatations result" camunda:formRef="ViewInvitationResults" camunda:formRefBinding="latest">
-      <bpmn:incoming>Flow_16m86sh</bpmn:incoming>
-      <bpmn:outgoing>Flow_12bgz2s</bpmn:outgoing>
-    </bpmn:userTask>
-    <bpmn:endEvent id="EndEvent_User">
-      <bpmn:incoming>Flow_12bgz2s</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:startEvent id="StartEvent_Main">
-      <bpmn:outgoing>Flow_1hln8rj</bpmn:outgoing>
-    </bpmn:startEvent>
-    <bpmn:sequenceFlow id="Flow_1hln8rj" sourceRef="StartEvent_Main" targetRef="UserTask_StartNewArtistWatch" />
-    <bpmn:sequenceFlow id="Flow_13z5feh" sourceRef="UserTask_StartNewArtistWatch" targetRef="CatchEvent_WaitForConcertAnnounced" />
-    <bpmn:sequenceFlow id="Flow_1kquxeh" sourceRef="CatchEvent_WaitForConcertAnnounced" targetRef="UserTask_FillInConcertSettingsForum" />
-    <bpmn:sequenceFlow id="Flow_00gb1ca" sourceRef="UserTask_FillInConcertSettingsForum" targetRef="ExclusiveGateway_GoingToConcert-User" />
-    <bpmn:sequenceFlow id="Flow_1dzzzxt" name="yes" sourceRef="ExclusiveGateway_GoingToConcert-User" targetRef="Gateway_OtherUsersInvited-User">
-      <bpmn:conditionExpression>${isGoing == true}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_0566m1n" name="no" sourceRef="ExclusiveGateway_GoingToConcert-User" targetRef="EndEvent_UserDeclinedConcert-User">
-      <bpmn:conditionExpression>${isGoing == false}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_05xzjxf" name="no" sourceRef="Gateway_OtherUsersInvited-User" targetRef="EndEvent_UserDidntInviteAnyone">
-      <bpmn:conditionExpression>${inviteeUsernames == null || inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1ckxn52" sourceRef="Gateway_OtherUsersInvited-User" targetRef="CatchEvent_WaitForInvitationResult">
-      <bpmn:conditionExpression>${inviteeUsernames != null &amp;&amp; !inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_16m86sh" sourceRef="CatchEvent_WaitForInvitationResult" targetRef="UserTask_ViewInvatationsResult" />
-    <bpmn:sequenceFlow id="Flow_12bgz2s" sourceRef="UserTask_ViewInvatationsResult" targetRef="EndEvent_User" />
+    <bpmn:intermediateCatchEvent id="CatchEvent_WaitForConcertAnnounced" name="Wait for concert announced">
+      <bpmn:incoming>Flow_148b2h9</bpmn:incoming>
+      <bpmn:outgoing>Flow_1kquxeh</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_05v7yyh" messageRef="Message_ConcertAnnounced" />
+    </bpmn:intermediateCatchEvent>
+    <bpmn:association id="Association_01pstm2" associationDirection="None" sourceRef="TextAnnotation_0j6ckmy" targetRef="UserTask_StartNewArtistWatch" />
   </bpmn:process>
   <bpmn:process id="Process_ConcertTicketWatcherSystem" isExecutable="true" camunda:historyTimeToLive="18250">
     <bpmn:laneSet id="LaneSet_1niu642">
       <bpmn:lane id="Lane_ConcertCoordination" name="Concert coordination">
-        <bpmn:flowNodeRef>ExclusiveGateway_GoingToConcert-ConcertTicketWatcherSystem</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_OtherUsersInvited-ConcertTicketWatcherSystem</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ServiceTask_ValidateAndResolveInviteeUsernames</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>SendTask_ShowUserInvitationResults</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ThrowEvent_InvatationResult</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ExclusiveGateway_Alignment</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ExclusiveGateway_GoingToConcert-ConcertTicketWatcherSystem</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>EndEvent_UserDeclinedConcert-ConcertTicketWatcherSystem</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ServiceTask_FetchTicketAvailabilityAndSendEmail</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>EndEvent_ConcertTicketWatcherSystem</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>EndEvent_ProgramFails-FetchTicketAvailabilityAndSendEmail</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>EndEvent_UserDeclinedConcert-ConcertTicketWatcherSystem</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>SubProcess_SendInvitations</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ErrorBoundaryEvent_ProgramFails-FetchTicketAvailabilityAndSendEmail</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_AnnouncementWatcher" name="Announcement watcher">
         <bpmn:extensionElements />
-        <bpmn:flowNodeRef>ServiceTask_FetchEventsFromAPI</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>MessageStartEvent_ConcertTicketWatcherSystem</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>CatchEvent_WaitForUserReply</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>SendTask_AnnounceConcertToUser</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>EndEvent_ProgramFails-FetchEventsFromAPI</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ThrowEvent_ConcertAnnounced</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ServiceTask_FetchEventsFromAPI</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CatchStartEvent_ConcertTicketWatcherSystem</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>CatchEvent_WaitForUserReply</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>ErrorBoundaryEvent_ProgramFails-FetchEventsFromAPI</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
+    <bpmn:sequenceFlow id="Flow_0cyk0pq" sourceRef="ThrowEvent_InvatationResult" targetRef="ExclusiveGateway_Alignment" />
+    <bpmn:sequenceFlow id="Flow_19bdj4w" sourceRef="SubProcess_SendInvitations" targetRef="ThrowEvent_InvatationResult" />
+    <bpmn:sequenceFlow id="Flow_1yssfz2" sourceRef="ExclusiveGateway_Alignment" targetRef="ServiceTask_FetchTicketAvailabilityAndSendEmail" />
+    <bpmn:sequenceFlow id="Flow_0c3ifug" sourceRef="ServiceTask_ValidateAndResolveInviteeUsernames" targetRef="SubProcess_SendInvitations" />
+    <bpmn:sequenceFlow id="Flow_1qxhzv8" sourceRef="CatchStartEvent_ConcertTicketWatcherSystem" targetRef="ServiceTask_FetchEventsFromAPI" />
+    <bpmn:sequenceFlow id="Flow_18kthq3" name="yes" sourceRef="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem" targetRef="ServiceTask_ValidateAndResolveInviteeUsernames">
+      <bpmn:conditionExpression>${inviteeUsernames != null &amp;&amp; !inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0lqa507" name="no" sourceRef="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem" targetRef="ExclusiveGateway_Alignment">
+      <bpmn:conditionExpression>${inviteeUsernames == null || inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1mebs37" name="yes" sourceRef="ExclusiveGateway_GoingToConcert-ConcertTicketWatcherSystem" targetRef="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem">
+      <bpmn:conditionExpression>${isGoing == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1i06vog" name="no" sourceRef="ExclusiveGateway_GoingToConcert-ConcertTicketWatcherSystem" targetRef="EndEvent_UserDeclinedConcert-ConcertTicketWatcherSystem">
+      <bpmn:conditionExpression>${isGoing == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_00qmc72" sourceRef="CatchEvent_WaitForUserReply" targetRef="ExclusiveGateway_GoingToConcert-ConcertTicketWatcherSystem" />
+    <bpmn:sequenceFlow id="Flow_052e27x" sourceRef="ThrowEvent_ConcertAnnounced" targetRef="CatchEvent_WaitForUserReply" />
+    <bpmn:sequenceFlow id="Flow_1r9c56n" sourceRef="ServiceTask_FetchEventsFromAPI" targetRef="ThrowEvent_ConcertAnnounced" />
+    <bpmn:sequenceFlow id="Flow_0ps0ygq" sourceRef="ErrorBoundaryEvent_ProgramFails-FetchEventsFromAPI" targetRef="EndEvent_ProgramFails-FetchEventsFromAPI" />
+    <bpmn:boundaryEvent id="ErrorBoundaryEvent_ProgramFails-FetchEventsFromAPI" name="Program intentionally or unintentionally fails" attachedToRef="ServiceTask_FetchEventsFromAPI">
+      <bpmn:outgoing>Flow_0ps0ygq</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_0vx79uu" />
+    </bpmn:boundaryEvent>
+    <bpmn:subProcess id="SubProcess_SendInvitations" name="Send invitations">
+      <bpmn:incoming>Flow_0c3ifug</bpmn:incoming>
+      <bpmn:outgoing>Flow_19bdj4w</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_1ui5wqq">
+        <bpmn:targetRef>DataObjectReference_ConcertSettingsEV</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:multiInstanceLoopCharacteristics camunda:collection="${inviteeList}" camunda:elementVariable="invitee" />
+      <bpmn:startEvent id="StartEvent_SubProcess-SendInvitations">
+        <bpmn:outgoing>Flow_1klzc36</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:endEvent id="EndEvent_SubProcess-SendInvitations">
+        <bpmn:incoming>Flow_1ibtnog</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="Flow_1ibtnog" sourceRef="CatchEvent_WaitForInvitationReply" targetRef="EndEvent_SubProcess-SendInvitations" />
+      <bpmn:intermediateCatchEvent id="CatchEvent_WaitForInvitationReply" name="Wait for invitation reply">
+        <bpmn:incoming>Flow_1yu9a0d</bpmn:incoming>
+        <bpmn:outgoing>Flow_1ibtnog</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="MessageEventDefinition_1pmh46w" messageRef="Message_InvitationReply" />
+      </bpmn:intermediateCatchEvent>
+      <bpmn:sequenceFlow id="Flow_1klzc36" sourceRef="StartEvent_SubProcess-SendInvitations" targetRef="ThrowEvent_InviteUsers" />
+      <bpmn:sequenceFlow id="Flow_1yu9a0d" sourceRef="ThrowEvent_InviteUsers" targetRef="CatchEvent_WaitForInvitationReply" />
+      <bpmn:intermediateThrowEvent id="ThrowEvent_InviteUsers" name="Invite user">
+        <bpmn:incoming>Flow_1klzc36</bpmn:incoming>
+        <bpmn:outgoing>Flow_1yu9a0d</bpmn:outgoing>
+        <bpmn:messageEventDefinition id="MessageEventDefinition_08e7j5z" messageRef="Message_InviteeStart" camunda:type="external" camunda:topic="send-invitee-start" />
+      </bpmn:intermediateThrowEvent>
+    </bpmn:subProcess>
+    <bpmn:exclusiveGateway id="ExclusiveGateway_Alignment">
+      <bpmn:incoming>Flow_0lqa507</bpmn:incoming>
+      <bpmn:incoming>Flow_0cyk0pq</bpmn:incoming>
+      <bpmn:outgoing>Flow_1yssfz2</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateThrowEvent id="ThrowEvent_InvatationResult">
+      <bpmn:incoming>Flow_19bdj4w</bpmn:incoming>
+      <bpmn:outgoing>Flow_0cyk0pq</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1l8cf63" messageRef="Message_InvitationResult" camunda:type="external" camunda:topic="send-invitation-result" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:serviceTask id="ServiceTask_ValidateAndResolveInviteeUsernames" name="Validate and resolve invitee usernames" camunda:type="external" camunda:topic="validate-invitees">
+      <bpmn:incoming>Flow_18kthq3</bpmn:incoming>
+      <bpmn:outgoing>Flow_0c3ifug</bpmn:outgoing>
+      <bpmn:property id="Property_1d246ge" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_0onxvgr">
+        <bpmn:sourceRef>DataObjectReference_ConcertSettingsEV</bpmn:sourceRef>
+        <bpmn:targetRef>Property_1d246ge</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:startEvent id="CatchStartEvent_ConcertTicketWatcherSystem">
+      <bpmn:outgoing>Flow_1qxhzv8</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_0ls5y15">
+        <bpmn:targetRef>DataObjectReference_ConcertSettingsEV</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_05vk1q4">
+        <bpmn:targetRef>DataStoreReference_EventWatchDB</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_12txvzr" messageRef="Message_SystemStart" />
+    </bpmn:startEvent>
     <bpmn:serviceTask id="ServiceTask_FetchEventsFromAPI" name="Fetch events from API" camunda:type="external" camunda:topic="fetch-events">
       <bpmn:incoming>Flow_1qxhzv8</bpmn:incoming>
-      <bpmn:outgoing>Flow_09h9ybc</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1r9c56n</bpmn:outgoing>
       <bpmn:property id="Property_1xs9fha" name="__targetRef_placeholder" />
       <bpmn:dataInputAssociation id="DataInputAssociation_0g678ll">
         <bpmn:sourceRef>DataStoreReference_EventWatchDB</bpmn:sourceRef>
@@ -189,66 +281,39 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
         <bpmn:targetRef>Property_1xs9fha</bpmn:targetRef>
       </bpmn:dataInputAssociation>
     </bpmn:serviceTask>
-    <bpmn:startEvent id="MessageStartEvent_ConcertTicketWatcherSystem">
-      <bpmn:outgoing>Flow_1qxhzv8</bpmn:outgoing>
-      <bpmn:dataOutputAssociation id="DataOutputAssociation_05vk1q4">
-        <bpmn:targetRef>DataStoreReference_EventWatchDB</bpmn:targetRef>
-      </bpmn:dataOutputAssociation>
-      <bpmn:dataOutputAssociation id="DataOutputAssociation_0ls5y15">
-        <bpmn:targetRef>DataObjectReference_ConcertSettingsEV</bpmn:targetRef>
-      </bpmn:dataOutputAssociation>
-      <bpmn:messageEventDefinition id="MessageEventDefinition_106jbul" messageRef="Message_SystemStart" />
-    </bpmn:startEvent>
+    <bpmn:dataObjectReference id="DataObjectReference_ConcertSettingsEV" name="Concert Ticket Watcher EV" dataObjectRef="DataObject_1ot85ai" />
+    <bpmn:dataObject id="DataObject_1ot85ai" />
+    <bpmn:exclusiveGateway id="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem" name="Other users invited?">
+      <bpmn:incoming>Flow_1mebs37</bpmn:incoming>
+      <bpmn:outgoing>Flow_18kthq3</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0lqa507</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:intermediateThrowEvent id="ThrowEvent_ConcertAnnounced">
+      <bpmn:incoming>Flow_1r9c56n</bpmn:incoming>
+      <bpmn:outgoing>Flow_052e27x</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1uf3ujk" messageRef="Message_ConcertAnnounced" camunda:type="external" camunda:topic="send-concert-announced" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:endEvent id="EndEvent_ProgramFails-FetchEventsFromAPI">
+      <bpmn:incoming>Flow_0ps0ygq</bpmn:incoming>
+      <bpmn:terminateEventDefinition id="TerminateEventDefinition_1mpscjg" />
+    </bpmn:endEvent>
+    <bpmn:dataStoreReference id="DataStoreReference_EventWatchDB" name="Concert Ticket Watcher DB" />
     <bpmn:intermediateCatchEvent id="CatchEvent_WaitForUserReply" name="Wait for user reply">
-      <bpmn:incoming>Flow_1r803y6</bpmn:incoming>
+      <bpmn:incoming>Flow_052e27x</bpmn:incoming>
       <bpmn:outgoing>Flow_00qmc72</bpmn:outgoing>
       <bpmn:dataOutputAssociation id="DataOutputAssociation_0ee8uhd">
         <bpmn:targetRef>DataObjectReference_ConcertSettingsEV</bpmn:targetRef>
       </bpmn:dataOutputAssociation>
       <bpmn:messageEventDefinition id="MessageEventDefinition_0gl7f77" messageRef="Message_UserReply" />
     </bpmn:intermediateCatchEvent>
-    <bpmn:sendTask id="SendTask_AnnounceConcertToUser" name="Announce concert to user" camunda:expression="${true}">
-      <bpmn:incoming>Flow_09h9ybc</bpmn:incoming>
-      <bpmn:outgoing>Flow_1r803y6</bpmn:outgoing>
-      <bpmn:property id="Property_1lqqcxg" name="__targetRef_placeholder" />
-      <bpmn:dataInputAssociation id="DataInputAssociation_173laqy">
-        <bpmn:sourceRef>DataObjectReference_ConcertSettingsEV</bpmn:sourceRef>
-        <bpmn:targetRef>Property_1lqqcxg</bpmn:targetRef>
-      </bpmn:dataInputAssociation>
-    </bpmn:sendTask>
     <bpmn:exclusiveGateway id="ExclusiveGateway_GoingToConcert-ConcertTicketWatcherSystem" name="Going to the concert?">
       <bpmn:incoming>Flow_00qmc72</bpmn:incoming>
       <bpmn:outgoing>Flow_1mebs37</bpmn:outgoing>
       <bpmn:outgoing>Flow_1i06vog</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:exclusiveGateway id="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem" name="Other users invited?">
-      <bpmn:incoming>Flow_1mebs37</bpmn:incoming>
-      <bpmn:outgoing>Flow_18kthq3</bpmn:outgoing>
-      <bpmn:outgoing>Flow_0lqa507</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
-    <bpmn:serviceTask id="ServiceTask_ValidateAndResolveInviteeUsernames" name="Validate and resolve invitee usernames" camunda:type="external" camunda:topic="validate-invitees">
-      <bpmn:incoming>Flow_18kthq3</bpmn:incoming>
-      <bpmn:outgoing>Flow_0c3ifug</bpmn:outgoing>
-      <bpmn:property id="Property_1d246ge" name="__targetRef_placeholder" />
-      <bpmn:dataInputAssociation id="DataInputAssociation_0onxvgr">
-        <bpmn:sourceRef>DataObjectReference_ConcertSettingsEV</bpmn:sourceRef>
-        <bpmn:targetRef>Property_1d246ge</bpmn:targetRef>
-      </bpmn:dataInputAssociation>
-    </bpmn:serviceTask>
-    <bpmn:sendTask id="SendTask_ShowUserInvitationResults" name="Show user invitation results" camunda:expression="${true}">
-      <bpmn:incoming>Flow_1gsaohg</bpmn:incoming>
-      <bpmn:outgoing>Flow_0i2olbt</bpmn:outgoing>
-      <bpmn:property id="Property_0p8z6mu" name="__targetRef_placeholder" />
-      <bpmn:dataInputAssociation id="DataInputAssociation_1ucsnob">
-        <bpmn:sourceRef>DataObjectReference_ConcertSettingsEV</bpmn:sourceRef>
-        <bpmn:targetRef>Property_0p8z6mu</bpmn:targetRef>
-      </bpmn:dataInputAssociation>
-    </bpmn:sendTask>
-    <bpmn:exclusiveGateway id="ExclusiveGateway_Alignment">
-      <bpmn:incoming>Flow_0i2olbt</bpmn:incoming>
-      <bpmn:incoming>Flow_0lqa507</bpmn:incoming>
-      <bpmn:outgoing>Flow_1yssfz2</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_UserDeclinedConcert-ConcertTicketWatcherSystem">
+      <bpmn:incoming>Flow_1i06vog</bpmn:incoming>
+    </bpmn:endEvent>
     <bpmn:serviceTask id="ServiceTask_FetchTicketAvailabilityAndSendEmail" name="Fetch ticket availability and send email" camunda:type="external" camunda:topic="fetch-ticket-availability">
       <bpmn:incoming>Flow_1yssfz2</bpmn:incoming>
       <bpmn:outgoing>Flow_08vmejs</bpmn:outgoing>
@@ -268,520 +333,407 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
     <bpmn:endEvent id="EndEvent_ProgramFails-FetchTicketAvailabilityAndSendEmail">
       <bpmn:incoming>Flow_0muhsj4</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:endEvent id="EndEvent_UserDeclinedConcert-ConcertTicketWatcherSystem">
-      <bpmn:incoming>Flow_1i06vog</bpmn:incoming>
-    </bpmn:endEvent>
-    <bpmn:subProcess id="SubProcess_SendInvitations" name="Send invitations">
-      <bpmn:incoming>Flow_0c3ifug</bpmn:incoming>
-      <bpmn:outgoing>Flow_1gsaohg</bpmn:outgoing>
-      <bpmn:dataOutputAssociation id="DataOutputAssociation_1ui5wqq">
-        <bpmn:targetRef>DataObjectReference_ConcertSettingsEV</bpmn:targetRef>
-      </bpmn:dataOutputAssociation>
-      <bpmn:multiInstanceLoopCharacteristics isSequential="false" camunda:collection="${inviteeList}" camunda:elementVariable="invitee">
-      </bpmn:multiInstanceLoopCharacteristics>
-      <bpmn:startEvent id="StartEvent_SubProcess-SendInvitations">
-        <bpmn:outgoing>Flow_174fo2d</bpmn:outgoing>
-      </bpmn:startEvent>
-      <bpmn:sequenceFlow id="Flow_174fo2d" sourceRef="StartEvent_SubProcess-SendInvitations" targetRef="SendTask_InviteUser" />
-      <bpmn:sequenceFlow id="Flow_13kdgq5" sourceRef="SendTask_InviteUser" targetRef="CatchEvent_WaitForInvitationReply" />
-      <bpmn:sendTask id="SendTask_InviteUser" name="invite user" camunda:expression="${true}">
-        <bpmn:incoming>Flow_174fo2d</bpmn:incoming>
-        <bpmn:outgoing>Flow_13kdgq5</bpmn:outgoing>
-      </bpmn:sendTask>
-      <bpmn:endEvent id="EndEvent_SubProcess-SendInvitations">
-        <bpmn:incoming>Flow_1ibtnog</bpmn:incoming>
-      </bpmn:endEvent>
-      <bpmn:sequenceFlow id="Flow_1ibtnog" sourceRef="CatchEvent_WaitForInvitationReply" targetRef="EndEvent_SubProcess-SendInvitations" />
-      <bpmn:intermediateCatchEvent id="CatchEvent_WaitForInvitationReply" name="Wait for invitation reply">
-        <bpmn:incoming>Flow_13kdgq5</bpmn:incoming>
-        <bpmn:outgoing>Flow_1ibtnog</bpmn:outgoing>
-        <bpmn:messageEventDefinition id="MessageEventDefinition_1pmh46w" messageRef="Message_InvitationReply" />
-      </bpmn:intermediateCatchEvent>
-    </bpmn:subProcess>
-    <bpmn:endEvent id="EndEvent_ProgramFails-FetchEventsFromAPI">
-      <bpmn:incoming>Flow_0ps0ygq</bpmn:incoming>
-      <bpmn:terminateEventDefinition id="TerminateEventDefinition_1mpscjg" />
-    </bpmn:endEvent>
-    <bpmn:dataObjectReference id="DataObjectReference_ConcertSettingsEV" name="Concert Ticket Watcher EV" dataObjectRef="DataObject_1ot85ai" />
-    <bpmn:dataObject id="DataObject_1ot85ai" />
-    <bpmn:dataStoreReference id="DataStoreReference_EventWatchDB" name="Concert Ticket Watcher DB" />
     <bpmn:boundaryEvent id="ErrorBoundaryEvent_ProgramFails-FetchTicketAvailabilityAndSendEmail" name="Program intentionally or unintentionally fails" attachedToRef="ServiceTask_FetchTicketAvailabilityAndSendEmail">
       <bpmn:outgoing>Flow_0muhsj4</bpmn:outgoing>
       <bpmn:errorEventDefinition id="ErrorEventDefinition_01dunob" />
     </bpmn:boundaryEvent>
-    <bpmn:boundaryEvent id="ErrorBoundaryEvent_ProgramFails-FetchEventsFromAPI" name="Program intentionally or unintentionally fails" attachedToRef="ServiceTask_FetchEventsFromAPI">
-      <bpmn:outgoing>Flow_0ps0ygq</bpmn:outgoing>
-      <bpmn:errorEventDefinition id="ErrorEventDefinition_0vx79uu" />
-    </bpmn:boundaryEvent>
-    <bpmn:sequenceFlow id="Flow_1qxhzv8" sourceRef="MessageStartEvent_ConcertTicketWatcherSystem" targetRef="ServiceTask_FetchEventsFromAPI" />
-    <bpmn:sequenceFlow id="Flow_09h9ybc" sourceRef="ServiceTask_FetchEventsFromAPI" targetRef="SendTask_AnnounceConcertToUser" />
-    <bpmn:sequenceFlow id="Flow_1r803y6" sourceRef="SendTask_AnnounceConcertToUser" targetRef="CatchEvent_WaitForUserReply" />
-    <bpmn:sequenceFlow id="Flow_00qmc72" sourceRef="CatchEvent_WaitForUserReply" targetRef="ExclusiveGateway_GoingToConcert-ConcertTicketWatcherSystem" />
-    <bpmn:sequenceFlow id="Flow_1mebs37" name="yes" sourceRef="ExclusiveGateway_GoingToConcert-ConcertTicketWatcherSystem" targetRef="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem">
-      <bpmn:conditionExpression>${isGoing == true}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1i06vog" name="no" sourceRef="ExclusiveGateway_GoingToConcert-ConcertTicketWatcherSystem" targetRef="EndEvent_UserDeclinedConcert-ConcertTicketWatcherSystem">
-      <bpmn:conditionExpression>${isGoing == false}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_18kthq3" name="yes" sourceRef="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem" targetRef="ServiceTask_ValidateAndResolveInviteeUsernames">
-      <bpmn:conditionExpression>${inviteeUsernames != null &amp;&amp; !inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_0lqa507" name="no" sourceRef="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem" targetRef="ExclusiveGateway_Alignment">
-      <bpmn:conditionExpression>${inviteeUsernames == null || inviteeUsernames.trim().isEmpty()}</bpmn:conditionExpression>
-    </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_0c3ifug" sourceRef="ServiceTask_ValidateAndResolveInviteeUsernames" targetRef="SubProcess_SendInvitations" />
-    <bpmn:sequenceFlow id="Flow_1gsaohg" sourceRef="SubProcess_SendInvitations" targetRef="SendTask_ShowUserInvitationResults" />
-    <bpmn:sequenceFlow id="Flow_0i2olbt" sourceRef="SendTask_ShowUserInvitationResults" targetRef="ExclusiveGateway_Alignment" />
-    <bpmn:sequenceFlow id="Flow_1yssfz2" sourceRef="ExclusiveGateway_Alignment" targetRef="ServiceTask_FetchTicketAvailabilityAndSendEmail" />
     <bpmn:sequenceFlow id="Flow_08vmejs" sourceRef="ServiceTask_FetchTicketAvailabilityAndSendEmail" targetRef="EndEvent_ConcertTicketWatcherSystem" />
     <bpmn:sequenceFlow id="Flow_0muhsj4" sourceRef="ErrorBoundaryEvent_ProgramFails-FetchTicketAvailabilityAndSendEmail" targetRef="EndEvent_ProgramFails-FetchTicketAvailabilityAndSendEmail" />
-    <bpmn:sequenceFlow id="Flow_0ps0ygq" sourceRef="ErrorBoundaryEvent_ProgramFails-FetchEventsFromAPI" targetRef="EndEvent_ProgramFails-FetchEventsFromAPI" />
+    <bpmn:association id="Association_1am5pyt" associationDirection="None" sourceRef="TextAnnotation_09h7iwf" targetRef="ErrorBoundaryEvent_ProgramFails-FetchTicketAvailabilityAndSendEmail" />
   </bpmn:process>
   <bpmn:process id="Process_Invitee" isExecutable="true" camunda:historyTimeToLive="18250">
-    <bpmn:startEvent id="MessageStartEvent_Invitee">
-      <bpmn:outgoing>Flow_1obaln1</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="MessageEventDefinition_1g367l1" messageRef="Message_InviteeStart" />
-    </bpmn:startEvent>
     <bpmn:userTask id="UserTask_Respond" name="Respond" camunda:formRef="RespondToInvitation" camunda:formRefBinding="latest" camunda:assignee="${invitee}">
-      <bpmn:incoming>Flow_1obaln1</bpmn:incoming>
-      <bpmn:outgoing>Flow_0makq0d</bpmn:outgoing>
+      <bpmn:incoming>Flow_1t2quaj</bpmn:incoming>
+      <bpmn:outgoing>Flow_0rfviu1</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:endEvent id="EndEvent_Invitee">
-      <bpmn:incoming>Flow_0makq0d</bpmn:incoming>
+    <bpmn:startEvent id="CatchStartEvent_Invitee">
+      <bpmn:outgoing>Flow_1t2quaj</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0kuad7y" messageRef="Message_InviteeStart" />
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1t2quaj" sourceRef="CatchStartEvent_Invitee" targetRef="UserTask_Respond" />
+    <bpmn:sequenceFlow id="Flow_0rfviu1" sourceRef="UserTask_Respond" targetRef="ThrowEndEvent_InvitationResult" />
+    <bpmn:endEvent id="ThrowEndEvent_InvitationResult">
+      <bpmn:incoming>Flow_0rfviu1</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0b0117x" messageRef="Message_InvitationReply" camunda:type="external" camunda:topic="send-invitation-reply" />
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_1obaln1" sourceRef="MessageStartEvent_Invitee" targetRef="UserTask_Respond" />
-    <bpmn:sequenceFlow id="Flow_0makq0d" sourceRef="UserTask_Respond" targetRef="EndEvent_Invitee" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_ConcertTicketWatcher">
       <bpmndi:BPMNShape id="Participant_161dmzm_di" bpmnElement="Participant_User" isHorizontal="true">
-        <dc:Bounds x="850" y="580" width="1590" height="230" />
+        <dc:Bounds x="700" y="580" width="1840" height="230" />
         <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1hvqebr_di" bpmnElement="UserTask_StartNewArtistWatch">
-        <dc:Bounds x="1020" y="690" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0huxe2o_di" bpmnElement="CatchEvent_WaitForConcertAnnounced">
-        <dc:Bounds x="1352" y="712" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1332" y="683" width="78" height="27" />
-        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1r7ubut_di" bpmnElement="UserTask_FillInConcertSettingsForum">
         <dc:Bounds x="1450" y="690" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_Main">
+        <dc:Bounds x="772" y="712" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1hvqebr_di" bpmnElement="UserTask_StartNewArtistWatch">
+        <dc:Bounds x="880" y="690" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Gateway_05yleq0_di" bpmnElement="ExclusiveGateway_GoingToConcert-User" isMarkerVisible="true">
-        <dc:Bounds x="1615" y="705" width="50" height="50" />
+        <dc:Bounds x="1715" y="705" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1611" y="762" width="60" height="27" />
+          <dc:Bounds x="1711" y="762" width="60" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1jfrl2r_di" bpmnElement="Gateway_OtherUsersInvited-User" isMarkerVisible="true">
+        <dc:Bounds x="1825" y="705" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1822" y="762" width="58" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1hqehvc_di" bpmnElement="EndEvent_UserDidntInviteAnyone">
+        <dc:Bounds x="1832" y="602" width="36" height="36" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0bzgiyh_di" bpmnElement="EndEvent_UserDeclinedConcert-User">
-        <dc:Bounds x="1622" y="602" width="36" height="36" />
+        <dc:Bounds x="1722" y="602" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="2338" y="572" width="85" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1hqehvc_di" bpmnElement="EndEvent_UserDidntInviteAnyone">
-        <dc:Bounds x="1732" y="602" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1jfrl2r_di" bpmnElement="Gateway_OtherUsersInvited-User" isMarkerVisible="true">
-        <dc:Bounds x="1725" y="705" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1722" y="762" width="58" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1y7en0m_di" bpmnElement="CatchEvent_WaitForInvitationResult">
-        <dc:Bounds x="2102" y="712" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="2077" y="683" width="90" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1tdytgh_di" bpmnElement="UserTask_ViewInvatationsResult">
-        <dc:Bounds x="2200" y="690" width="100" height="80" />
-        <bpmndi:BPMNLabel />
+      <bpmndi:BPMNShape id="Event_0mmqe4t_di" bpmnElement="ThrowEvent_UserReply">
+        <dc:Bounds x="1612" y="712" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0pk1cfs_di" bpmnElement="EndEvent_User">
-        <dc:Bounds x="2362" y="712" width="36" height="36" />
+        <dc:Bounds x="2452" y="712" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_Main">
-        <dc:Bounds x="912" y="712" width="36" height="36" />
+      <bpmndi:BPMNShape id="Activity_1tdytgh_di" bpmnElement="UserTask_ViewInvatationsResult">
+        <dc:Bounds x="2290" y="690" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_1hln8rj_di" bpmnElement="Flow_1hln8rj">
-        <di:waypoint x="948" y="730" />
-        <di:waypoint x="1020" y="730" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_13z5feh_di" bpmnElement="Flow_13z5feh">
-        <di:waypoint x="1120" y="730" />
-        <di:waypoint x="1352" y="730" />
+      <bpmndi:BPMNShape id="Event_1revbct_di" bpmnElement="ThrowEvent_SystemStart">
+        <dc:Bounds x="1052" y="712" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1y7en0m_di" bpmnElement="CatchEvent_WaitForInvitationResult">
+        <dc:Bounds x="2182" y="712" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="2157" y="683" width="90" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0huxe2o_di" bpmnElement="CatchEvent_WaitForConcertAnnounced">
+        <dc:Bounds x="1342" y="712" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1322" y="683" width="78" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_01pstm2_di" bpmnElement="Association_01pstm2" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
+        <di:waypoint x="1040" y="482" />
+        <di:waypoint x="1040" y="550" />
+        <di:waypoint x="954" y="690" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1kquxeh_di" bpmnElement="Flow_1kquxeh">
-        <di:waypoint x="1388" y="730" />
+        <di:waypoint x="1378" y="730" />
         <di:waypoint x="1450" y="730" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_00gb1ca_di" bpmnElement="Flow_00gb1ca">
-        <di:waypoint x="1550" y="730" />
-        <di:waypoint x="1615" y="730" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1dzzzxt_di" bpmnElement="Flow_1dzzzxt">
-        <di:waypoint x="1665" y="730" />
-        <di:waypoint x="1725" y="730" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1668" y="712" width="18" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0566m1n_di" bpmnElement="Flow_0566m1n">
-        <di:waypoint x="1640" y="705" />
-        <di:waypoint x="1640" y="638" />
+        <di:waypoint x="1740" y="705" />
+        <di:waypoint x="1740" y="638" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1649" y="668" width="13" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_05xzjxf_di" bpmnElement="Flow_05xzjxf">
-        <di:waypoint x="1750" y="705" />
-        <di:waypoint x="1750" y="638" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1759" y="668" width="13" height="14" />
+          <dc:Bounds x="1743" y="668" width="13" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ckxn52_di" bpmnElement="Flow_1ckxn52">
-        <di:waypoint x="1775" y="730" />
-        <di:waypoint x="2102" y="730" />
+        <di:waypoint x="1875" y="730" />
+        <di:waypoint x="2182" y="730" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_16m86sh_di" bpmnElement="Flow_16m86sh">
-        <di:waypoint x="2138" y="730" />
-        <di:waypoint x="2200" y="730" />
+      <bpmndi:BPMNEdge id="Flow_1hln8rj_di" bpmnElement="Flow_1hln8rj">
+        <di:waypoint x="808" y="730" />
+        <di:waypoint x="880" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1rdlhyb_di" bpmnElement="Flow_1rdlhyb">
+        <di:waypoint x="980" y="730" />
+        <di:waypoint x="1052" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_148b2h9_di" bpmnElement="Flow_148b2h9">
+        <di:waypoint x="1088" y="730" />
+        <di:waypoint x="1342" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1dzzzxt_di" bpmnElement="Flow_1dzzzxt">
+        <di:waypoint x="1765" y="730" />
+        <di:waypoint x="1825" y="730" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1768" y="712" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05xzjxf_di" bpmnElement="Flow_05xzjxf">
+        <di:waypoint x="1850" y="705" />
+        <di:waypoint x="1850" y="638" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1859" y="668" width="13" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1qi51jw_di" bpmnElement="Flow_1qi51jw">
+        <di:waypoint x="1550" y="730" />
+        <di:waypoint x="1612" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10vn0pm_di" bpmnElement="Flow_10vn0pm">
+        <di:waypoint x="1648" y="730" />
+        <di:waypoint x="1715" y="730" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_12bgz2s_di" bpmnElement="Flow_12bgz2s">
-        <di:waypoint x="2300" y="730" />
-        <di:waypoint x="2362" y="730" />
+        <di:waypoint x="2390" y="730" />
+        <di:waypoint x="2452" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16m86sh_di" bpmnElement="Flow_16m86sh">
+        <di:waypoint x="2218" y="730" />
+        <di:waypoint x="2290" y="730" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Participant_1muoepc_di" bpmnElement="Participant_ConcertTicketWatcherSystem" isHorizontal="true">
-        <dc:Bounds x="970" y="890" width="1660" height="570" />
+        <dc:Bounds x="960" y="890" width="1740" height="570" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_0qhga5h_di" bpmnElement="Lane_AnnouncementWatcher" isHorizontal="true">
-        <dc:Bounds x="1000" y="890" width="1630" height="270" />
+        <dc:Bounds x="990" y="890" width="1710" height="270" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_0lw5ge7_di" bpmnElement="Lane_ConcertCoordination" isHorizontal="true">
-        <dc:Bounds x="1000" y="1160" width="1630" height="300" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0bspcqm_di" bpmnElement="ServiceTask_FetchEventsFromAPI">
-        <dc:Bounds x="1170" y="920" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_12gg6hh_di" bpmnElement="MessageStartEvent_ConcertTicketWatcherSystem">
-        <dc:Bounds x="1062" y="942" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1vr3s75_di" bpmnElement="CatchEvent_WaitForUserReply">
-        <dc:Bounds x="1492" y="942" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1535" y="953" width="90" height="14" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1ysea7t_di" bpmnElement="SendTask_AnnounceConcertToUser">
-        <dc:Bounds x="1330" y="920" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0k1v1g3_di" bpmnElement="ExclusiveGateway_GoingToConcert-ConcertTicketWatcherSystem" isMarkerVisible="true">
-        <dc:Bounds x="1485" y="1255" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1415" y="1266" width="60" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0zvsb07_di" bpmnElement="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem" isMarkerVisible="true">
-        <dc:Bounds x="1625" y="1255" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1621" y="1315" width="58" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_07upalv_di" bpmnElement="ServiceTask_ValidateAndResolveInviteeUsernames">
-        <dc:Bounds x="1738" y="1240" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1kcrx3p_di" bpmnElement="SendTask_ShowUserInvitationResults">
-        <dc:Bounds x="2080" y="1240" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0jlsa5k_di" bpmnElement="ExclusiveGateway_Alignment" isMarkerVisible="true">
-        <dc:Bounds x="2255" y="1255" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1heu4lx_di" bpmnElement="ServiceTask_FetchTicketAvailabilityAndSendEmail">
-        <dc:Bounds x="2380" y="1240" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_01p53ha_di" bpmnElement="EndEvent_ConcertTicketWatcherSystem">
-        <dc:Bounds x="2552" y="1262" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0ks3hld_di" bpmnElement="EndEvent_ProgramFails-FetchTicketAvailabilityAndSendEmail">
-        <dc:Bounds x="2462" y="1402" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_178cnn3_di" bpmnElement="EndEvent_UserDeclinedConcert-ConcertTicketWatcherSystem">
-        <dc:Bounds x="1492" y="1402" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_02uvqmr_di" bpmnElement="SubProcess_SendInvitations">
-        <dc:Bounds x="1900" y="1240" width="100" height="80" />
+        <dc:Bounds x="990" y="1160" width="1710" height="300" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1pq0ass_di" bpmnElement="EndEvent_ProgramFails-FetchEventsFromAPI">
-        <dc:Bounds x="1252" y="1092" width="36" height="36" />
+        <dc:Bounds x="1242" y="1092" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0jjohuj_di" bpmnElement="ThrowEvent_ConcertAnnounced">
+        <dc:Bounds x="1342" y="942" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0zvsb07_di" bpmnElement="Gateway_OtherUsersInvited-ConcertTicketWatcherSystem" isMarkerVisible="true">
+        <dc:Bounds x="1735" y="1255" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1731" y="1315" width="58" height="27" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="DataObjectReference_0qaaw6c_di" bpmnElement="DataObjectReference_ConcertSettingsEV" bioc:stroke="#0d4372" bioc:fill="#bbdefb" color:background-color="#bbdefb" color:border-color="#0d4372">
-        <dc:Bounds x="1742" y="902" width="36" height="50" />
+        <dc:Bounds x="1852" y="902" width="36" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1724" y="958" width="72" height="27" />
+          <dc:Bounds x="1835" y="958" width="71" height="27" />
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0bspcqm_di" bpmnElement="ServiceTask_FetchEventsFromAPI">
+        <dc:Bounds x="1160" y="920" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0jio1zd_di" bpmnElement="CatchStartEvent_ConcertTicketWatcherSystem">
+        <dc:Bounds x="1052" y="942" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_07upalv_di" bpmnElement="ServiceTask_ValidateAndResolveInviteeUsernames">
+        <dc:Bounds x="1848" y="1240" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_13k9j8m_di" bpmnElement="ThrowEvent_InvatationResult">
+        <dc:Bounds x="2182" y="1262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0jlsa5k_di" bpmnElement="ExclusiveGateway_Alignment" isMarkerVisible="true">
+        <dc:Bounds x="2285" y="1255" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="DataStoreReference_1eyvzfd_di" bpmnElement="DataStoreReference_EventWatchDB" bioc:stroke="#0d4372" bioc:fill="#bbdefb" color:background-color="#bbdefb" color:border-color="#0d4372">
-        <dc:Bounds x="1165" y="1195" width="50" height="50" />
+        <dc:Bounds x="1185" y="1195" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1154" y="1248" width="72" height="27" />
+          <dc:Bounds x="1175" y="1248" width="71" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0b1z0yl_di" bpmnElement="ErrorBoundaryEvent_ProgramFails-FetchEventsFromAPI">
-        <dc:Bounds x="1252" y="982" width="36" height="36" />
+      <bpmndi:BPMNShape id="Event_1vr3s75_di" bpmnElement="CatchEvent_WaitForUserReply">
+        <dc:Bounds x="1612" y="942" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1284" y="1001" width="72" height="53" />
+          <dc:Bounds x="1655" y="953" width="90" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0k1v1g3_di" bpmnElement="ExclusiveGateway_GoingToConcert-ConcertTicketWatcherSystem" isMarkerVisible="true">
+        <dc:Bounds x="1605" y="1255" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1535" y="1266" width="60" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_178cnn3_di" bpmnElement="EndEvent_UserDeclinedConcert-ConcertTicketWatcherSystem">
+        <dc:Bounds x="1612" y="1402" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1heu4lx_di" bpmnElement="ServiceTask_FetchTicketAvailabilityAndSendEmail">
+        <dc:Bounds x="2410" y="1240" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_01p53ha_di" bpmnElement="EndEvent_ConcertTicketWatcherSystem">
+        <dc:Bounds x="2582" y="1262" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ks3hld_di" bpmnElement="EndEvent_ProgramFails-FetchTicketAvailabilityAndSendEmail">
+        <dc:Bounds x="2492" y="1402" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_02uvqmr_di" bpmnElement="SubProcess_SendInvitations">
+        <dc:Bounds x="2010" y="1240" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1am5pyt_di" bpmnElement="Association_1am5pyt" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
+        <di:waypoint x="930" y="1499" />
+        <di:waypoint x="1100" y="1499" />
+        <di:waypoint x="1160" y="1380" />
+        <di:waypoint x="2440" y="1380" />
+        <di:waypoint x="2493" y="1327" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_0b1z0yl_di" bpmnElement="ErrorBoundaryEvent_ProgramFails-FetchEventsFromAPI">
+        <dc:Bounds x="1242" y="982" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1274" y="1001" width="72" height="53" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1w0pw7x_di" bpmnElement="ErrorBoundaryEvent_ProgramFails-FetchTicketAvailabilityAndSendEmail">
-        <dc:Bounds x="2462" y="1302" width="36" height="36" />
+        <dc:Bounds x="2492" y="1302" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="2494" y="1323" width="72" height="53" />
+          <dc:Bounds x="2524" y="1323" width="72" height="53" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_1qxhzv8_di" bpmnElement="Flow_1qxhzv8">
-        <di:waypoint x="1098" y="960" />
-        <di:waypoint x="1170" y="960" />
+      <bpmndi:BPMNEdge id="Flow_0ps0ygq_di" bpmnElement="Flow_0ps0ygq">
+        <di:waypoint x="1260" y="1018" />
+        <di:waypoint x="1260" y="1092" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_09h9ybc_di" bpmnElement="Flow_09h9ybc">
-        <di:waypoint x="1270" y="960" />
-        <di:waypoint x="1330" y="960" />
+      <bpmndi:BPMNEdge id="Flow_1r9c56n_di" bpmnElement="Flow_1r9c56n">
+        <di:waypoint x="1260" y="960" />
+        <di:waypoint x="1342" y="960" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1r803y6_di" bpmnElement="Flow_1r803y6">
-        <di:waypoint x="1430" y="960" />
-        <di:waypoint x="1492" y="960" />
+      <bpmndi:BPMNEdge id="Flow_052e27x_di" bpmnElement="Flow_052e27x">
+        <di:waypoint x="1378" y="960" />
+        <di:waypoint x="1612" y="960" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_00qmc72_di" bpmnElement="Flow_00qmc72">
-        <di:waypoint x="1510" y="978" />
-        <di:waypoint x="1510" y="1255" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1mebs37_di" bpmnElement="Flow_1mebs37">
-        <di:waypoint x="1535" y="1280" />
-        <di:waypoint x="1625" y="1280" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1563" y="1262" width="18" height="14" />
-        </bpmndi:BPMNLabel>
+        <di:waypoint x="1630" y="978" />
+        <di:waypoint x="1630" y="1255" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1i06vog_di" bpmnElement="Flow_1i06vog">
-        <di:waypoint x="1510" y="1305" />
-        <di:waypoint x="1510" y="1402" />
+        <di:waypoint x="1630" y="1305" />
+        <di:waypoint x="1630" y="1402" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1519" y="1328" width="13" height="14" />
+          <dc:Bounds x="1639" y="1328" width="13" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_18kthq3_di" bpmnElement="Flow_18kthq3">
-        <di:waypoint x="1675" y="1280" />
-        <di:waypoint x="1738" y="1280" />
+      <bpmndi:BPMNEdge id="Flow_1mebs37_di" bpmnElement="Flow_1mebs37">
+        <di:waypoint x="1655" y="1280" />
+        <di:waypoint x="1735" y="1280" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1692" y="1262" width="18" height="14" />
+          <dc:Bounds x="1679" y="1262" width="18" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0lqa507_di" bpmnElement="Flow_0lqa507">
-        <di:waypoint x="1650" y="1255" />
-        <di:waypoint x="1650" y="1190" />
-        <di:waypoint x="2280" y="1190" />
-        <di:waypoint x="2280" y="1255" />
+        <di:waypoint x="1760" y="1255" />
+        <di:waypoint x="1760" y="1190" />
+        <di:waypoint x="2310" y="1190" />
+        <di:waypoint x="2310" y="1255" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1659" y="1235" width="13" height="14" />
+          <dc:Bounds x="1769" y="1235" width="13" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18kthq3_di" bpmnElement="Flow_18kthq3">
+        <di:waypoint x="1785" y="1280" />
+        <di:waypoint x="1848" y="1280" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1802" y="1262" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1qxhzv8_di" bpmnElement="Flow_1qxhzv8">
+        <di:waypoint x="1088" y="960" />
+        <di:waypoint x="1160" y="960" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0c3ifug_di" bpmnElement="Flow_0c3ifug">
-        <di:waypoint x="1838" y="1280" />
-        <di:waypoint x="1900" y="1280" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1gsaohg_di" bpmnElement="Flow_1gsaohg">
-        <di:waypoint x="2000" y="1280" />
-        <di:waypoint x="2080" y="1280" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0i2olbt_di" bpmnElement="Flow_0i2olbt">
-        <di:waypoint x="2180" y="1280" />
-        <di:waypoint x="2255" y="1280" />
+        <di:waypoint x="1948" y="1280" />
+        <di:waypoint x="2010" y="1280" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1yssfz2_di" bpmnElement="Flow_1yssfz2">
-        <di:waypoint x="2305" y="1280" />
-        <di:waypoint x="2380" y="1280" />
+        <di:waypoint x="2335" y="1280" />
+        <di:waypoint x="2410" y="1280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19bdj4w_di" bpmnElement="Flow_19bdj4w">
+        <di:waypoint x="2110" y="1280" />
+        <di:waypoint x="2182" y="1280" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0cyk0pq_di" bpmnElement="Flow_0cyk0pq">
+        <di:waypoint x="2218" y="1280" />
+        <di:waypoint x="2285" y="1280" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_08vmejs_di" bpmnElement="Flow_08vmejs">
-        <di:waypoint x="2480" y="1280" />
-        <di:waypoint x="2552" y="1280" />
+        <di:waypoint x="2510" y="1280" />
+        <di:waypoint x="2582" y="1280" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0muhsj4_di" bpmnElement="Flow_0muhsj4">
-        <di:waypoint x="2480" y="1338" />
-        <di:waypoint x="2480" y="1402" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0ps0ygq_di" bpmnElement="Flow_0ps0ygq">
-        <di:waypoint x="1270" y="1018" />
-        <di:waypoint x="1270" y="1092" />
+        <di:waypoint x="2510" y="1338" />
+        <di:waypoint x="2510" y="1402" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="Participant_1463axv_di" bpmnElement="Participant_Invitee" isHorizontal="true">
-        <dc:Bounds x="1750" y="1530" width="400" height="140" />
+        <dc:Bounds x="1855" y="1530" width="405" height="140" />
         <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1xpcn8a_di" bpmnElement="MessageStartEvent_Invitee">
-        <dc:Bounds x="1822" y="1582" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0utoxni_di" bpmnElement="UserTask_Respond">
-        <dc:Bounds x="1910" y="1560" width="100" height="80" />
+        <dc:Bounds x="2015" y="1560" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0w75wx7_di" bpmnElement="EndEvent_Invitee">
-        <dc:Bounds x="2062" y="1582" width="36" height="36" />
+      <bpmndi:BPMNShape id="Event_1cmf84d_di" bpmnElement="CatchStartEvent_Invitee">
+        <dc:Bounds x="1927" y="1582" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_1obaln1_di" bpmnElement="Flow_1obaln1">
-        <di:waypoint x="1858" y="1600" />
-        <di:waypoint x="1910" y="1600" />
+      <bpmndi:BPMNShape id="Event_1bdm179_di" bpmnElement="ThrowEndEvent_InvitationResult">
+        <dc:Bounds x="2172" y="1582" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1t2quaj_di" bpmnElement="Flow_1t2quaj">
+        <di:waypoint x="1963" y="1600" />
+        <di:waypoint x="2015" y="1600" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0makq0d_di" bpmnElement="Flow_0makq0d">
-        <di:waypoint x="2010" y="1600" />
-        <di:waypoint x="2062" y="1600" />
+      <bpmndi:BPMNEdge id="Flow_0rfviu1_di" bpmnElement="Flow_0rfviu1">
+        <di:waypoint x="2115" y="1600" />
+        <di:waypoint x="2172" y="1600" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNShape id="TextAnnotation_1n3dpcw_di" bpmnElement="TextAnnotation_1n3dpcw" bioc:stroke="#0d4372" bioc:fill="#bbdefb" color:background-color="#bbdefb" color:border-color="#0d4372">
-        <dc:Bounds x="1700" y="983" width="200" height="170" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_0hojf9n" bpmnElement="TextAnnotation_0lq8ptf" bioc:stroke="#0d4372" bioc:fill="#bbdefb" color:background-color="#bbdefb" color:border-color="#0d4372">
-        <dc:Bounds x="1110" y="1276" width="199.9854819976771" height="97.99651567944251" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_0ek3uzn" bpmnElement="TextAnnotation_1veqmjy" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
-        <dc:Bounds x="2690" y="1220" width="360" height="68" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="TextAnnotation_1j7peb9_di" bpmnElement="TextAnnotation_1j7peb9" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
-        <dc:Bounds x="765" y="850" width="180" height="130" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_1a0rbtb_di" bpmnElement="Association_1a0rbtb" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
+        <di:waypoint x="1651" y="1520" />
+        <di:waypoint x="1690" y="1490" />
+        <di:waypoint x="1788" y="1490" />
+        <di:waypoint x="1877" y="1320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0yu9lvm_di" bpmnElement="Association_0yu9lvm" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
+        <di:waypoint x="1162" y="924" />
+        <di:waypoint x="1100" y="876" />
+        <di:waypoint x="910" y="876" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_14qcl4k_di" bpmnElement="Association_14qcl4k" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
+        <di:waypoint x="1257" y="1018" />
+        <di:waypoint x="1250" y="1060" />
+        <di:waypoint x="1120" y="1060" />
+        <di:waypoint x="867" y="1436" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_1dcjhvz_di" bpmnElement="Association_1dcjhvz" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
+        <di:waypoint x="2360" y="1550" />
+        <di:waypoint x="2260" y="1550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0or1u4f_di" bpmnElement="Association_0or1u4f" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
+        <di:waypoint x="2390" y="1500" />
+        <di:waypoint x="2320" y="1400" />
+        <di:waypoint x="2170" y="1400" />
+        <di:waypoint x="2109" y="1314" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0x1nqe8_di" bpmnElement="Association_0x1nqe8" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
+        <di:waypoint x="2730" y="1249" />
+        <di:waypoint x="2540" y="1249" />
+        <di:waypoint x="2510" y="1260" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNShape id="BPMNShape_13gklid" bpmnElement="TextAnnotation_0ffuv9b" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
         <dc:Bounds x="1350" y="413" width="370" height="84" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_11c235e" bpmnElement="TextAnnotation_07sv779" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
-        <dc:Bounds x="2250" y="1500" width="370" height="84" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_15gevgc" bpmnElement="TextAnnotation_09h7iwf" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
-        <dc:Bounds x="765" y="1457" width="200" height="127" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_0svmp9p" bpmnElement="TextAnnotation_12vnafx" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
         <dc:Bounds x="160" y="50" width="585" height="300" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="BPMNShape_0rffst3" bpmnElement="TextAnnotation_137xhfd" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
-        <dc:Bounds x="1340" y="1510" width="370" height="70" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="BPMNShape_1ouxe64" bpmnElement="TextAnnotation_0j6ckmy" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
         <dc:Bounds x="850" y="355" width="370" height="127" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="DataInputAssociation_0g678ll_di" bpmnElement="DataInputAssociation_0g678ll" bioc:stroke="#0d4372" color:border-color="#0d4372">
-        <di:waypoint x="1192" y="1195" />
-        <di:waypoint x="1210" y="1000" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataInputAssociation_0i1havy_di" bpmnElement="DataInputAssociation_0i1havy" bioc:stroke="#0d4372" color:border-color="#0d4372">
-        <di:waypoint x="1740" y="910" />
-        <di:waypoint x="1310" y="910" />
-        <di:waypoint x="1268" y="924" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataOutputAssociation_05vk1q4_di" bpmnElement="DataOutputAssociation_05vk1q4" bioc:stroke="#0d4372" color:border-color="#0d4372">
-        <di:waypoint x="1087" y="976" />
-        <di:waypoint x="1182" y="1195" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataOutputAssociation_0ls5y15_di" bpmnElement="DataOutputAssociation_0ls5y15" bioc:stroke="#0d4372" color:border-color="#0d4372">
-        <di:waypoint x="1095" y="951" />
-        <di:waypoint x="1180" y="900" />
-        <di:waypoint x="1740" y="900" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataOutputAssociation_0ee8uhd_di" bpmnElement="DataOutputAssociation_0ee8uhd" bioc:stroke="#0d4372" color:border-color="#0d4372">
-        <di:waypoint x="1523" y="948" />
-        <di:waypoint x="1540" y="932" />
-        <di:waypoint x="1742" y="932" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataInputAssociation_173laqy_di" bpmnElement="DataInputAssociation_173laqy" bioc:stroke="#0d4372" color:border-color="#0d4372">
-        <di:waypoint x="1740" y="920" />
-        <di:waypoint x="1460" y="920" />
-        <di:waypoint x="1429" y="928" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataInputAssociation_0onxvgr_di" bpmnElement="DataInputAssociation_0onxvgr" bioc:stroke="#0d4372" color:border-color="#0d4372">
-        <di:waypoint x="1778" y="938" />
-        <di:waypoint x="1830" y="970" />
-        <di:waypoint x="1880" y="1120" />
-        <di:waypoint x="1811" y="1240" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataInputAssociation_1ucsnob_di" bpmnElement="DataInputAssociation_1ucsnob" bioc:stroke="#0d4372" color:border-color="#0d4372">
-        <di:waypoint x="1780" y="920" />
-        <di:waypoint x="1990" y="920" />
-        <di:waypoint x="2097" y="1240" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataInputAssociation_14rgbbx_di" bpmnElement="DataInputAssociation_14rgbbx" bioc:stroke="#0d4372" color:border-color="#0d4372">
-        <di:waypoint x="1215" y="1220" />
-        <di:waypoint x="2340" y="1220" />
-        <di:waypoint x="2387" y="1241" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataInputAssociation_0wr2jdc_di" bpmnElement="DataInputAssociation_0wr2jdc" bioc:stroke="#0d4372" color:border-color="#0d4372">
-        <di:waypoint x="1780" y="910" />
-        <di:waypoint x="2310" y="910" />
-        <di:waypoint x="2397" y="1240" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="DataOutputAssociation_1ui5wqq_di" bpmnElement="DataOutputAssociation_1ui5wqq" bioc:stroke="#0d4372" color:border-color="#0d4372">
-        <di:waypoint x="1936" y="1240" />
-        <di:waypoint x="1840" y="960" />
-        <di:waypoint x="1780" y="927" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_15qqc1w_di" bpmnElement="Flow_15qqc1w">
-        <di:waypoint x="1080" y="770" />
-        <di:waypoint x="1080" y="942" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0u7hfx8_di" bpmnElement="Flow_0u7hfx8">
-        <di:waypoint x="1510" y="770" />
-        <di:waypoint x="1510" y="942" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0ric1fi_di" bpmnElement="Flow_0ric1fi">
-        <di:waypoint x="1370" y="920" />
-        <di:waypoint x="1370" y="748" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0usrnx6_di" bpmnElement="Flow_0usrnx6">
-        <di:waypoint x="2120" y="1240" />
-        <di:waypoint x="2120" y="748" />
+      <bpmndi:BPMNEdge id="Flow_16g5m3m_di" bpmnElement="Flow_16g5m3m">
+        <di:waypoint x="2190" y="1582" />
+        <di:waypoint x="2190" y="1500" />
+        <di:waypoint x="2065" y="1500" />
+        <di:waypoint x="2065" y="1320" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0lfp6kd_di" bpmnElement="Flow_0lfp6kd">
-        <di:waypoint x="1930" y="1320" />
-        <di:waypoint x="1930" y="1500" />
-        <di:waypoint x="1840" y="1500" />
-        <di:waypoint x="1840" y="1582" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_16g5m3m_di" bpmnElement="Flow_16g5m3m">
-        <di:waypoint x="1960" y="1560" />
-        <di:waypoint x="1960" y="1320" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_1dcjhvz_di" bpmnElement="Association_1dcjhvz" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
-        <di:waypoint x="2250" y="1550" />
-        <di:waypoint x="2150" y="1550" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_0x1nqe8_di" bpmnElement="Association_0x1nqe8" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
-        <di:waypoint x="2690" y="1249" />
-        <di:waypoint x="2480" y="1249" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_0yu9lvm_di" bpmnElement="Association_0yu9lvm" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
-        <di:waypoint x="1171" y="926" />
-        <di:waypoint x="1100" y="876" />
-        <di:waypoint x="945" y="876" />
+        <di:waypoint x="2040" y="1320" />
+        <di:waypoint x="2040" y="1500" />
+        <di:waypoint x="1945" y="1500" />
+        <di:waypoint x="1945" y="1582" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_0guf89o_di" bpmnElement="Association_0guf89o" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
         <di:waypoint x="1532" y="497" />
@@ -789,47 +741,102 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
         <di:waypoint x="1500" y="550" />
         <di:waypoint x="1500" y="690" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_0or1u4f_di" bpmnElement="Association_0or1u4f" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
-        <di:waypoint x="2280" y="1490" />
-        <di:waypoint x="2230" y="1400" />
-        <di:waypoint x="1990" y="1400" />
-        <di:waypoint x="1980" y="1320" />
+      <bpmndi:BPMNEdge id="Flow_0u40nk4_di" bpmnElement="Flow_0u40nk4">
+        <di:waypoint x="1070" y="748" />
+        <di:waypoint x="1070" y="942" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_14qcl4k_di" bpmnElement="Association_14qcl4k" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
-        <di:waypoint x="1264" y="1017" />
-        <di:waypoint x="1250" y="1060" />
-        <di:waypoint x="910" y="1060" />
-        <di:waypoint x="866" y="1457" />
+      <bpmndi:BPMNEdge id="Flow_1qiwum4_di" bpmnElement="Flow_1qiwum4">
+        <di:waypoint x="1360" y="942" />
+        <di:waypoint x="1360" y="748" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_1am5pyt_di" bpmnElement="Association_1am5pyt" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
-        <di:waypoint x="965" y="1520" />
-        <di:waypoint x="1090" y="1520" />
-        <di:waypoint x="1160" y="1380" />
-        <di:waypoint x="2440" y="1380" />
-        <di:waypoint x="2465" y="1330" />
+      <bpmndi:BPMNEdge id="Flow_0hnj69t_di" bpmnElement="Flow_0hnj69t">
+        <di:waypoint x="2200" y="1260" />
+        <di:waypoint x="2200" y="748" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_1a0rbtb_di" bpmnElement="Association_1a0rbtb" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
-        <di:waypoint x="1535" y="1510" />
-        <di:waypoint x="1550" y="1490" />
-        <di:waypoint x="1788" y="1490" />
-        <di:waypoint x="1788" y="1320" />
+      <bpmndi:BPMNEdge id="Flow_1tdeh3f_di" bpmnElement="Flow_1tdeh3f">
+        <di:waypoint x="1630" y="748" />
+        <di:waypoint x="1630" y="942" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_01pstm2_di" bpmnElement="Association_01pstm2" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
-        <di:waypoint x="1040" y="482" />
-        <di:waypoint x="1040" y="520" />
-        <di:waypoint x="1070" y="550" />
-        <di:waypoint x="1070" y="690" />
+      <bpmndi:BPMNShape id="TextAnnotation_1n3dpcw_di" bpmnElement="TextAnnotation_1n3dpcw" bioc:stroke="#0d4372" bioc:fill="#bbdefb" color:background-color="#bbdefb" color:border-color="#0d4372">
+        <dc:Bounds x="1820" y="983" width="200" height="170" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_05vk1q4_di" bpmnElement="DataOutputAssociation_05vk1q4" bioc:stroke="#0d4372" color:border-color="#0d4372">
+        <di:waypoint x="1070" y="978" />
+        <di:waypoint x="1070" y="1130" />
+        <di:waypoint x="1130" y="1130" />
+        <di:waypoint x="1190" y="1195" />
       </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_14rgbbx_di" bpmnElement="DataInputAssociation_14rgbbx" bioc:stroke="#0d4372" color:border-color="#0d4372">
+        <di:waypoint x="1235" y="1220" />
+        <di:waypoint x="2360" y="1220" />
+        <di:waypoint x="2415" y="1242" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_0g678ll_di" bpmnElement="DataInputAssociation_0g678ll" bioc:stroke="#0d4372" color:border-color="#0d4372">
+        <di:waypoint x="1209" y="1195" />
+        <di:waypoint x="1205" y="1000" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0ee8uhd_di" bpmnElement="DataOutputAssociation_0ee8uhd" bioc:stroke="#0d4372" color:border-color="#0d4372">
+        <di:waypoint x="1640" y="945" />
+        <di:waypoint x="1650" y="932" />
+        <di:waypoint x="1852" y="932" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_1ui5wqq_di" bpmnElement="DataOutputAssociation_1ui5wqq" bioc:stroke="#0d4372" color:border-color="#0d4372">
+        <di:waypoint x="2046" y="1240" />
+        <di:waypoint x="1950" y="960" />
+        <di:waypoint x="1890" y="927" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataOutputAssociation_0ls5y15_di" bpmnElement="DataOutputAssociation_0ls5y15" bioc:stroke="#0d4372" color:border-color="#0d4372">
+        <di:waypoint x="1085" y="951" />
+        <di:waypoint x="1170" y="900" />
+        <di:waypoint x="1870" y="900" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_0wr2jdc_di" bpmnElement="DataInputAssociation_0wr2jdc" bioc:stroke="#0d4372" color:border-color="#0d4372">
+        <di:waypoint x="1888" y="910" />
+        <di:waypoint x="2350" y="910" />
+        <di:waypoint x="2428" y="1240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_0onxvgr_di" bpmnElement="DataInputAssociation_0onxvgr" bioc:stroke="#0d4372" color:border-color="#0d4372">
+        <di:waypoint x="1888" y="938" />
+        <di:waypoint x="1940" y="970" />
+        <di:waypoint x="1990" y="1120" />
+        <di:waypoint x="1921" y="1240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="DataInputAssociation_0i1havy_di" bpmnElement="DataInputAssociation_0i1havy" bioc:stroke="#0d4372" color:border-color="#0d4372">
+        <di:waypoint x="1852" y="910" />
+        <di:waypoint x="1300" y="910" />
+        <di:waypoint x="1258" y="924" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="BPMNShape_0rffst3" bpmnElement="TextAnnotation_137xhfd" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="1430" y="1520" width="370" height="70" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0hojf9n" bpmnElement="TextAnnotation_0lq8ptf" bioc:stroke="#0d4372" bioc:fill="#bbdefb" color:background-color="#bbdefb" color:border-color="#0d4372">
+        <dc:Bounds x="1140" y="1276" width="200" height="98" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="TextAnnotation_1j7peb9_di" bpmnElement="TextAnnotation_1j7peb9" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="730" y="850" width="180" height="130" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_15gevgc" bpmnElement="TextAnnotation_09h7iwf" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="730" y="1436" width="200" height="127" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_11c235e" bpmnElement="TextAnnotation_07sv779" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="2360" y="1500" width="370" height="84" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BPMNShape_0ek3uzn" bpmnElement="TextAnnotation_1veqmjy" bioc:stroke="#6b3c00" bioc:fill="#ffe0b2" color:background-color="#ffe0b2" color:border-color="#6b3c00">
+        <dc:Bounds x="2730" y="1220" width="360" height="68" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1bk05x3">
     <bpmndi:BPMNPlane id="BPMNPlane_0d36k6s" bpmnElement="SubProcess_SendInvitations">
       <bpmndi:BPMNShape id="Event_0qpfcl6_di" bpmnElement="StartEvent_SubProcess-SendInvitations">
         <dc:Bounds x="152" y="102" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0spp1pb_di" bpmnElement="SendTask_InviteUser">
-        <dc:Bounds x="240" y="80" width="100" height="80" />
-        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_0tbznoi_di" bpmnElement="EndEvent_SubProcess-SendInvitations">
         <dc:Bounds x="482" y="102" width="36" height="36" />
@@ -840,17 +847,23 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
           <dc:Bounds x="368" y="145" width="84" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_174fo2d_di" bpmnElement="Flow_174fo2d">
-        <di:waypoint x="188" y="120" />
-        <di:waypoint x="240" y="120" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_13kdgq5_di" bpmnElement="Flow_13kdgq5">
-        <di:waypoint x="340" y="120" />
-        <di:waypoint x="392" y="120" />
-      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_0f32zoo_di" bpmnElement="ThrowEvent_InviteUsers">
+        <dc:Bounds x="272" y="102" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="265" y="145" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1ibtnog_di" bpmnElement="Flow_1ibtnog">
         <di:waypoint x="428" y="120" />
         <di:waypoint x="482" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1klzc36_di" bpmnElement="Flow_1klzc36">
+        <di:waypoint x="188" y="120" />
+        <di:waypoint x="272" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1yu9a0d_di" bpmnElement="Flow_1yu9a0d">
+        <di:waypoint x="308" y="120" />
+        <di:waypoint x="392" y="120" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

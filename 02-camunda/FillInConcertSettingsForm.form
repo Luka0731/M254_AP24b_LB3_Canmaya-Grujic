@@ -9,8 +9,51 @@
       },
       "id": "Field_17c6pnw",
       "key": "eventName",
-      "disabled": true,
-      "description": "Location: {{eventVenue}}, {{eventCity}} | Date: {{eventDate}} | Price: {{eventPrice}}"
+      "disabled": true
+    },
+    {
+      "label": "Venue",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_venue",
+        "columns": null
+      },
+      "id": "Field_venue",
+      "key": "eventVenue",
+      "disabled": true
+    },
+    {
+      "label": "City",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_venue",
+        "columns": null
+      },
+      "id": "Field_city",
+      "key": "eventCity",
+      "disabled": true
+    },
+    {
+      "label": "Date",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_datePrice",
+        "columns": null
+      },
+      "id": "Field_date",
+      "key": "eventDate",
+      "disabled": true
+    },
+    {
+      "label": "Price",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_datePrice",
+        "columns": null
+      },
+      "id": "Field_price",
+      "key": "eventPrice",
+      "disabled": true
     },
     {
       "label": "I want to go to the Concert",
@@ -21,10 +64,7 @@
       },
       "id": "Field_0sellvr",
       "key": "isGoing",
-      "description": "Check this if you are planning to attend. You will receive an email reminder 30 minutes before tickets go on sale.",
-      "validate": {
-        "required": false
-      }
+      "description": "Check this if you are planning to attend. You will receive an email reminder 30 minutes before tickets go on sale."
     },
     {
       "label": "Want to bring someone? (Optional)",
@@ -35,9 +75,6 @@
       },
       "id": "Field_0uz0o4l",
       "key": "inviteeUsernames",
-      "validate": {
-        "minLength": ""
-      },
       "description": "Enter Camunda usernames separated by commas. They must be registered users of this system. Wrong names will simply be skipped."
     }
   ],

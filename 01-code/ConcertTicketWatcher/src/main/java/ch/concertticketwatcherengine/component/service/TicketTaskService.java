@@ -39,7 +39,7 @@ public class TicketTaskService extends Service {
         for (long attempt = 0; attempt < MAX_CHECKS; attempt++) {
             Ticket ticket = fetchTicket(eventId);
             if (ticket == null) {
-                ThreadUtil.sleepHours(CHECK_INTERVAL_HOURS);
+                if (attempt < MAX_CHECKS - 1) ThreadUtil.sleepHours(CHECK_INTERVAL_HOURS);
                 continue;
             }
             if (presaleDate == null && ticket.getPresaleDate() != null) {
@@ -50,7 +50,7 @@ public class TicketTaskService extends Service {
                 sendTicketAvailableEmails(recipients, eventName, eventUrl, ticket.getPrice());
                 return;
             }
-            ThreadUtil.sleepHours(CHECK_INTERVAL_HOURS);
+            if (attempt < MAX_CHECKS - 1) ThreadUtil.sleepHours(CHECK_INTERVAL_HOURS);
         }
 
         throw new RuntimeException("{TicketTaskService} Ticket watcher timed out after " + MAX_WAIT_YEARS + " years for: " + eventName);
@@ -63,7 +63,8 @@ public class TicketTaskService extends Service {
     private List<String> buildRecipientList() {
         String  userEmail = (String)  receivedData.getOrDefault("email",    "");
         boolean isGoing   = (Boolean) receivedData.getOrDefault("isGoing",  false);
-        List<Map<String, String>> invitees = (List<Map<String, String>>) receivedData.getOrDefault("inviteeList", List.of());
+        Object raw = receivedData.get("inviteeList");
+        List<Map<String, String>> invitees = raw != null ? (List<Map<String, String>>) raw : List.of();
 
         List<String> recipients = new ArrayList<>();
 

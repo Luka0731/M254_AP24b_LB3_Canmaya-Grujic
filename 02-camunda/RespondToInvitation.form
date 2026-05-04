@@ -3,10 +3,7 @@
     {
       "label": "Invited by",
       "type": "textfield",
-      "layout": {
-        "row": "Row_076vb1q",
-        "columns": null
-      },
+      "layout": { "row": "Row_076vb1q", "columns": null },
       "id": "Field_1cjnn44",
       "key": "userName",
       "disabled": true,
@@ -15,22 +12,47 @@
     {
       "label": "Event",
       "type": "textfield",
-      "layout": {
-        "row": "Row_1fmk0st",
-        "columns": null
-      },
+      "layout": { "row": "Row_1fmk0st", "columns": null },
       "id": "Field_1i3o1xw",
       "key": "eventName",
-      "disabled": true,
-      "description": "Location: {{eventVenue}}, {{eventCity}} | Date: {{eventDate}} | Price: {{eventPrice}}"
+      "disabled": true
+    },
+    {
+      "label": "Venue",
+      "type": "textfield",
+      "layout": { "row": "Row_venueCity", "columns": null },
+      "id": "Field_venue",
+      "key": "eventVenue",
+      "disabled": true
+    },
+    {
+      "label": "City",
+      "type": "textfield",
+      "layout": { "row": "Row_venueCity", "columns": null },
+      "id": "Field_city",
+      "key": "eventCity",
+      "disabled": true
+    },
+    {
+      "label": "Date",
+      "type": "textfield",
+      "layout": { "row": "Row_datePrice", "columns": null },
+      "id": "Field_date",
+      "key": "eventDate",
+      "disabled": true
+    },
+    {
+      "label": "Price",
+      "type": "textfield",
+      "layout": { "row": "Row_datePrice", "columns": null },
+      "id": "Field_price",
+      "key": "eventPrice",
+      "disabled": true
     },
     {
       "label": "I want to go to the Concert",
       "type": "checkbox",
-      "layout": {
-        "row": "Row_1ez3k1c",
-        "columns": null
-      },
+      "layout": { "row": "Row_1ez3k1c", "columns": null },
       "id": "Field_082jfyo",
       "key": "isGoing",
       "description": "If you accept, the person who invited you will be informed and you will receive an email reminder 30 minutes before tickets go on sale."
@@ -40,9 +62,6 @@
   "id": "RespondToInvitation",
   "executionPlatform": "Camunda Platform",
   "executionPlatformVersion": "7.20.0",
-  "exporter": {
-    "name": "Camunda Modeler",
-    "version": "5.44.0"
-  },
+  "exporter": { "name": "Camunda Modeler", "version": "5.44.0" },
   "schemaVersion": 19
 }
