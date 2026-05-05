@@ -12,11 +12,11 @@ public class ConcertTaskHandler extends Handler {
 
     @Override
     protected List<String> defineReceivedData() {
-        return List.of("artistName", "maxDistanceKm", "userName", "email");
+        return List.of("artistName", "maxDistanceKm", "userName", "email", "processInstanceId");
     }
 
     @Override
     protected List<String> defineReturnData() {
-        return List.of("eventName", "eventVenue", "eventCity", "eventDate", "eventPrice", "eventUrl", "eventImageUrl");
+        return List.of("eventName", "eventVenue", "eventCity", "eventDate", "eventPrice", "eventUrl", "eventImageUrl", "eventId");
     }
 }

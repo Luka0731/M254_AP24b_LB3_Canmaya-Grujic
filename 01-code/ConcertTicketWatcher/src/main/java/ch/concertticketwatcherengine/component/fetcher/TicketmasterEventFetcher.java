@@ -42,7 +42,7 @@ public class TicketmasterEventFetcher extends Fetcher<Event> {
             JSONObject e = events.getJSONObject(0);
             Event event = new Event();
 
-            // |----- easy stuff -----|
+            // |----- basic fields -----|
             event.setId(e.optString("id"));
             event.setName(e.optString("name"));
             event.setUrl(e.optString("url"));
@@ -66,9 +66,16 @@ public class TicketmasterEventFetcher extends Fetcher<Event> {
                 JSONArray venues = embeddedInner.optJSONArray("venues");
                 if (venues != null && !venues.isEmpty()) {
                     JSONObject v = venues.getJSONObject(0);
-                    event.setVenue(v.optString("name"));
-                    event.setCity(v.optJSONObject("city") != null
-                            ? v.getJSONObject("city").optString("name") : "");
+
+                    String venueName = v.optString("name", "").trim();
+                    if (venueName.isBlank()) {
+                        JSONObject address = v.optJSONObject("address");
+                        venueName = address != null ? address.optString("line1", "") : "";
+                    }
+                    event.setVenue(venueName);
+
+                    JSONObject city = v.optJSONObject("city");
+                    event.setCity(city != null ? city.optString("name", "") : "");
 
                     JSONObject loc = v.optJSONObject("location");
                     if (loc != null) {
@@ -81,15 +88,17 @@ public class TicketmasterEventFetcher extends Fetcher<Event> {
             // |----- price -----|
             JSONArray priceRanges = e.optJSONArray("priceRanges");
             if (priceRanges != null && !priceRanges.isEmpty()) {
-                event.setPriceMin(String.valueOf(priceRanges.getJSONObject(0).optDouble("min", 0)));
+                double min      = priceRanges.getJSONObject(0).optDouble("min", 0);
+                String currency = priceRanges.getJSONObject(0).optString("currency", "CHF");
+                event.setPriceMin(min + " " + currency);
             } else {
-                event.setPriceMin("N/A");
+                event.setPriceMin("See Ticketmaster");
             }
 
             return event;
 
-        } catch (Exception e) {
-            throw new TicketmasterApiException("Failed to parse event response: " + e.getMessage());
+        } catch (Exception ex) {
+            throw new TicketmasterApiException("Failed to parse event response: " + ex.getMessage());
         }
     }
 }

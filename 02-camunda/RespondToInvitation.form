@@ -6,7 +6,7 @@
       "layout": { "row": "Row_076vb1q", "columns": null },
       "id": "Field_1cjnn44",
       "key": "userName",
-      "disabled": true,
+      "readonly": true,
       "description": "This person has invited you to join them at the concert below."
     },
     {
@@ -15,7 +15,7 @@
       "layout": { "row": "Row_1fmk0st", "columns": null },
       "id": "Field_1i3o1xw",
       "key": "eventName",
-      "disabled": true
+      "readonly": true
     },
     {
       "label": "Venue",
@@ -23,7 +23,7 @@
       "layout": { "row": "Row_venueCity", "columns": null },
       "id": "Field_venue",
       "key": "eventVenue",
-      "disabled": true
+      "readonly": true
     },
     {
       "label": "City",
@@ -31,7 +31,7 @@
       "layout": { "row": "Row_venueCity", "columns": null },
       "id": "Field_city",
       "key": "eventCity",
-      "disabled": true
+      "readonly": true
     },
     {
       "label": "Date",
@@ -39,7 +39,7 @@
       "layout": { "row": "Row_datePrice", "columns": null },
       "id": "Field_date",
       "key": "eventDate",
-      "disabled": true
+      "readonly": true
     },
     {
       "label": "Price",
@@ -47,7 +47,7 @@
       "layout": { "row": "Row_datePrice", "columns": null },
       "id": "Field_price",
       "key": "eventPrice",
-      "disabled": true
+      "readonly": true
     },
     {
       "label": "I want to go to the Concert",

@@ -15,29 +15,30 @@ import java.util.Map;
 public class ConcertTaskService extends Service {
 
     private static final long CHECK_INTERVAL_HOURS = 12;
-    private static final long MAX_WAIT_YEARS       = 50;
-    private static final long MAX_CHECKS           = MAX_WAIT_YEARS * ThreadUtil.DAYS_IN_YEAR * ThreadUtil.HOURS_IN_DAY / CHECK_INTERVAL_HOURS;
-    private final GeolocationFetcher        geolocationFetcher;
-    private final TicketmasterEventFetcher  eventFetcher;
-    private final EventWatchRepository      eventWatchRepository;
+    private static final long MAX_WAIT_YEARS = 50;
+    private static final long MAX_CHECKS = MAX_WAIT_YEARS * ThreadUtil.DAYS_IN_YEAR * ThreadUtil.HOURS_IN_DAY / CHECK_INTERVAL_HOURS;
+    private final GeolocationFetcher geolocationFetcher;
+    private final TicketmasterEventFetcher eventFetcher;
+    private final EventWatchRepository eventWatchRepository;
 
     public ConcertTaskService(GeolocationFetcher geolocationFetcher, TicketmasterEventFetcher eventFetcher, EventWatchRepository eventWatchRepository) {
-        this.geolocationFetcher   = geolocationFetcher;
-        this.eventFetcher         = eventFetcher;
+        this.geolocationFetcher = geolocationFetcher;
+        this.eventFetcher = eventFetcher;
         this.eventWatchRepository = eventWatchRepository;
     }
 
     @Override
     public void execute() {
-        String   artistName    = readArtistName();
-        String   maxDistanceKm = readMaxDistance();
-        Location location      = fetchUserLocation();
+        String processInstanceId = (String) receivedData.getOrDefault("processInstanceId", "");
+        String artistName = readArtistName();
+        String maxDistanceKm = readMaxDistance();
+        Location location = fetchUserLocation();
 
         Log.debug("{ConcertTaskService} Starting watch for: " + artistName + " | distance: " + maxDistanceKm + "km | location: " + location.getLatitude() + "," + location.getLongitude());
 
         for (long attempt = 0; attempt < MAX_CHECKS; attempt++) {
             Log.debug("{ConcertTaskService} Poll attempt " + (attempt + 1) + " of " + MAX_CHECKS);
-            Event event = findNewEvent(artistName, maxDistanceKm, location);
+            Event event = findNewEvent(processInstanceId, artistName, maxDistanceKm, location);
             if (event != null) {
                 Log.debug("{ConcertTaskService} New event found: " + event.getName() + " | id: " + event.getId());
                 putEventIntoReturnData(event);
@@ -74,12 +75,12 @@ public class ConcertTaskService extends Service {
         }
     }
 
-    private Event findNewEvent(String artistName, String maxDistanceKm, Location location) {
+    private Event findNewEvent(String processInstanceId, String artistName, String maxDistanceKm, Location location) {
         try {
             Map<String, String> filters = new HashMap<>();
             filters.put("artistName", artistName);
-            filters.put("latlong",    location.getLatitude() + "," + location.getLongitude());
-            filters.put("radius",     maxDistanceKm);
+            filters.put("latlong", location.getLatitude() + "," + location.getLongitude());
+            filters.put("radius", maxDistanceKm);
 
             Event event = eventFetcher.fetch(filters);
 
@@ -90,12 +91,12 @@ public class ConcertTaskService extends Service {
 
             Log.debug("{ConcertTaskService} Event found: " + event.getName() + " | id: " + event.getId());
 
-            if (eventWatchRepository.hasSeenEvent(event.getId())) {
-                Log.debug("{ConcertTaskService} Event already seen, skipping: " + event.getId());
+            if (eventWatchRepository.hasSeenEvent(processInstanceId, event.getId())) {
+                Log.debug("{ConcertTaskService} Event already seen for this watcher, skipping: " + event.getId());
                 return null;
             }
 
-            eventWatchRepository.markEventAsSeen(event.getId());
+            eventWatchRepository.markEventAsSeen(processInstanceId, event.getId());
             return event;
 
         } catch (DatabaseException e) {
@@ -107,14 +108,14 @@ public class ConcertTaskService extends Service {
     }
 
     private void putEventIntoReturnData(Event event) {
-        returnData.put("eventName",     event.getName());
-        returnData.put("eventVenue",    event.getVenue());
-        returnData.put("eventCity",     event.getCity());
-        returnData.put("eventDate",     event.getDate());
-        returnData.put("eventPrice",    event.getPriceMin());
-        returnData.put("eventUrl",      event.getUrl());
+        returnData.put("eventName", event.getName());
+        returnData.put("eventVenue", event.getVenue());
+        returnData.put("eventCity", event.getCity());
+        returnData.put("eventDate", event.getDate());
+        returnData.put("eventPrice", event.getPriceMin());
+        returnData.put("eventUrl", event.getUrl());
         returnData.put("eventImageUrl", event.getImageUrl());
-        returnData.put("eventId",       event.getId());
+        returnData.put("eventId", event.getId());
     }
 
     private void sleep() {

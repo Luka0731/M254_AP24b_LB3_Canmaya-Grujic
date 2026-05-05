@@ -27,6 +27,7 @@ public abstract class Handler implements ExternalTaskHandler {
         for (String key : defineReceivedData()) {
             receivedData.put(key, externalTask.getVariable(key));
         }
+        receivedData.put("processInstanceId", externalTask.getProcessInstanceId());
         Log.debug("{" + externalTask.getTopicName() + "} Received variables: " + receivedData);
         returnData = new HashMap<>();
         for (String key : defineReturnData()) {
@@ -35,28 +36,51 @@ public abstract class Handler implements ExternalTaskHandler {
         service.setData(receivedData, returnData, externalTaskService);
 
         // |----- run service -----|
-        try {
-            service.execute();
-        } catch (Exception e) {
-            Log.error("{" + externalTask.getTopicName() + "} Task failed. This might be intentional: " + e.getMessage());
-            externalTaskService.handleFailure(externalTask, e.getMessage(), null, 0, 0L);
-            return;
-        }
+        new Thread(() -> {
+            final boolean[] finished = {false};
+            Thread keepalive = new Thread(() -> {
+                while (!finished[0]) {
+                    try {
+                        Thread.sleep(5 * 60 * 1000L);
+                        if (!finished[0]) externalTaskService.extendLock(externalTask, 10 * 60 * 1000L);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        break;
+                    } catch (Exception ignored) {}
+                }
+            });
+            keepalive.setDaemon(true);
+            keepalive.start();
 
-        // |----- end task & return data -----|
-        if (returnData == null) {
-            externalTaskService.complete(externalTask);
-            Log.success("{" + externalTask.getTopicName() + "} Task completed. No return variables.");
-        } else {
-            returnData = service.getReturnData();
-            Log.debug("{" + externalTask.getTopicName() + "} Returning variables: " + returnData);
-            externalTaskService.complete(externalTask, returnData);
-        }
+            try {
+                service.execute();
+            } catch (Exception e) {
+                Log.error("{" + externalTask.getTopicName() + "} Task failed. This might be intentional: " + e.getMessage());
+                finished[0] = true;
+                keepalive.interrupt();
+                externalTaskService.handleBpmnError(externalTask, "TASK_FAILED", e.getMessage());
+                return;
+            }
+
+            finished[0] = true;
+            keepalive.interrupt();
+
+            // |----- end task & return data -----|
+            if (returnData == null) {
+                externalTaskService.complete(externalTask);
+                Log.success("{" + externalTask.getTopicName() + "} Task completed. No return variables.");
+            } else {
+                returnData = service.getReturnData();
+                Log.debug("{" + externalTask.getTopicName() + "} Returning variables: " + returnData);
+                externalTaskService.complete(externalTask, returnData);
+            }
+        }).start();
     }
 
     /**
      * Define the variables this handler expects to RECEIVE from the Camunda process.
      * The keys must match the variable names defined in your BPMN diagram exactly.
+     * Note: processInstanceId is always injected automatically, no need to list it here.
      *
      * @return a List with the expected Camunda variable names as keys, values can be null
      */

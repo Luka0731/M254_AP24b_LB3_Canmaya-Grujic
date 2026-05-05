@@ -12,7 +12,7 @@ public class TicketTaskHandler extends Handler {
 
     @Override
     protected List<String> defineReceivedData() {
-        return List.of("eventId", "email", "inviteeList");
+        return List.of("eventId", "eventName", "eventVenue", "eventCity", "eventDate", "eventUrl", "email", "userName", "isGoing", "inviteeList");
     }
 
     @Override

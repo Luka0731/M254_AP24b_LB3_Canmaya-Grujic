@@ -49,7 +49,7 @@ public class Setup {
         ExternalTaskHandler inviteeTaskHandler = new InviteeTaskHandler(inviteeTaskService);
         ExternalTaskHandler ticketTaskHandler  = new TicketTaskHandler(ticketTaskService);
         // messengers
-        ExternalTaskHandler systemStartMessenger = new SystemStartMessenger();
+        ExternalTaskHandler systemStartMessenger = new SystemStartMessenger(camundaUserFetcher);
         ExternalTaskHandler concertAnnouncedMessenger = new ConcertAnnouncedMessenger();
         ExternalTaskHandler userReplyMessenger = new UserReplyMessenger();
         ExternalTaskHandler inviteeStartMessenger = new InviteeStartMessenger();
@@ -62,6 +62,8 @@ public class Setup {
         // |----- camunda setup -----|
         ExternalTaskClient camundaClient = ExternalTaskClient.create()
                 .baseUrl("http://localhost:8080/engine-rest")
+                .workerId("concert-ticket-watcher")
+                .maxTasks(10)
                 .build();
         // task workers
         camundaClient.subscribe("fetch-events")

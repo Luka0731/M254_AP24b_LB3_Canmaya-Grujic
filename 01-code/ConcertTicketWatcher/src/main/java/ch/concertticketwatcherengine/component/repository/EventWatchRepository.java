@@ -14,20 +14,21 @@ public class EventWatchRepository extends Repository<Event> {
     }
 
     /**
-     * Checks if this event has already been seen and the user notified.
+     * Checks if this process instance has already been notified about this event.
      *
+     * @param processInstanceId   the Camunda process instance id of the watcher
      * @param ticketmasterEventId the Ticketmaster event ID
      * @return true if already notified, false if new
      */
-    public boolean hasSeenEvent(String ticketmasterEventId) throws DatabaseException {
-        Log.debug("{EventWatchRepository} Checking if event seen: " + ticketmasterEventId);
+    public boolean hasSeenEvent(String processInstanceId, String ticketmasterEventId) throws DatabaseException {
+        Log.debug("{EventWatchRepository} Checking if event seen: " + ticketmasterEventId + " for process: " + processInstanceId);
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                "SELECT 1 FROM event_watch WHERE ticketmaster_event_id = ?"
+                "SELECT 1 FROM event_watch WHERE process_instance_id = ? AND ticketmaster_event_id = ?"
              )) {
-            stmt.setString(1, ticketmasterEventId);
-            ResultSet rs   = stmt.executeQuery();
-            boolean  seen  = rs.next();
+            stmt.setString(1, processInstanceId);
+            stmt.setString(2, ticketmasterEventId);
+            boolean seen = stmt.executeQuery().next();
             Log.debug("{EventWatchRepository} Event " + ticketmasterEventId + " seen: " + seen);
             return seen;
         } catch (Exception e) {
@@ -36,17 +37,19 @@ public class EventWatchRepository extends Repository<Event> {
     }
 
     /**
-     * Marks an event as seen so the user won't be notified again.
+     * Marks an event as seen for this specific process instance.
      *
+     * @param processInstanceId   the Camunda process instance id of the watcher
      * @param ticketmasterEventId the Ticketmaster event ID
      */
-    public void markEventAsSeen(String ticketmasterEventId) throws DatabaseException {
-        Log.debug("{EventWatchRepository} Marking event as seen: " + ticketmasterEventId);
+    public void markEventAsSeen(String processInstanceId, String ticketmasterEventId) throws DatabaseException {
+        Log.debug("{EventWatchRepository} Marking event as seen: " + ticketmasterEventId + " for process: " + processInstanceId);
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                "INSERT INTO event_watch (ticketmaster_event_id, already_notified) VALUES (?, true)"
+                "INSERT INTO event_watch (process_instance_id, ticketmaster_event_id, already_notified) VALUES (?, ?, true)"
              )) {
-            stmt.setString(1, ticketmasterEventId);
+            stmt.setString(1, processInstanceId);
+            stmt.setString(2, ticketmasterEventId);
             stmt.executeUpdate();
             Log.debug("{EventWatchRepository} Event marked: " + ticketmasterEventId);
         } catch (Exception e) {

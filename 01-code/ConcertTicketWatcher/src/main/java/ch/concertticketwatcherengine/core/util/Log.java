@@ -2,6 +2,8 @@ package ch.concertticketwatcherengine.core.util;
 
 public class Log {
 
+    private final static boolean IS_DEBUG_ON = true;
+
     // |----- helper method -----|
 
     private static void printlnStyled(String text, ConsoleStyle style, String logType) {
@@ -23,6 +25,6 @@ public class Log {
     }
 
     public static void debug(String text) {
-        printlnStyled(text, ConsoleStyle.YELLOW, "DEBUG");
+        if (IS_DEBUG_ON) printlnStyled(text, ConsoleStyle.YELLOW, "DEBUG");
     }
 }

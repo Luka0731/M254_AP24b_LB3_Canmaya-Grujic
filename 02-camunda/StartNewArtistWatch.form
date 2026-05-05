@@ -26,37 +26,10 @@
       "validate": {
         "required": true,
         "min": "0",
-        "max": "40075"
+        "max": "18000"
       },
       "defaultValue": 150,
       "description": "Only concerts within this distance from you will trigger a notification."
-    },
-    {
-      "label": "Your name",
-      "type": "textfield",
-      "layout": {
-        "row": "Row_1v25908",
-        "columns": null
-      },
-      "id": "Field_1inala5",
-      "key": "userName",
-      "validate": {
-        "required": true
-      }
-    },
-    {
-      "label": "Email address",
-      "type": "textfield",
-      "layout": {
-        "row": "Row_1v25908",
-        "columns": null
-      },
-      "id": "Field_1ue3ytm",
-      "key": "email",
-      "validate": {
-        "required": true
-      },
-      "description": "You will receive a confirmation email once your watcher is active."
     }
   ],
   "type": "default",

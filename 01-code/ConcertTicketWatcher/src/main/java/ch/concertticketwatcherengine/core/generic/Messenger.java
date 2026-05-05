@@ -6,6 +6,8 @@ import org.camunda.bpm.client.task.ExternalTask;
 import org.camunda.bpm.client.task.ExternalTaskHandler;
 import org.camunda.bpm.client.task.ExternalTaskService;
 import org.json.JSONObject;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -29,7 +31,7 @@ public abstract class Messenger implements ExternalTaskHandler {
             Log.success("{" + task.getTopicName() + "} Message sent");
         } catch (MessagingException e) {
             Log.error("{" + task.getTopicName() + "} " + e.getMessage());
-            taskService.handleFailure(task, e.getMessage(), null, 0, 0L);
+            taskService.handleBpmnError(task, "TASK_FAILED", e.getMessage());
         }
     }
 
@@ -45,7 +47,7 @@ public abstract class Messenger implements ExternalTaskHandler {
      * Perform the actual message delivery using {@link #startByMessage} or {@link #correlate}.
      *
      * @param sourceProcessInstanceId the process instance this messenger is running in
-     * @param variables               variables collected from {@link #variablesNeeded()}
+     * @param variables variables collected from {@link #variablesNeeded()}
      */
     protected abstract void send(String sourceProcessInstanceId, Map<String, Object> variables) throws MessagingException;
 
@@ -58,7 +60,16 @@ public abstract class Messenger implements ExternalTaskHandler {
      */
     protected void startByMessage(String messageName, Map<String, Object> vars) throws MessagingException {
         Log.debug("{Messenger} startByMessage: " + messageName + " vars: " + vars);
-        post(messageName, buildBody(messageName, null, vars));
+        post(messageName, buildBody(messageName, null, null, null, vars));
+    }
+
+    /**
+     * Starts a new process instance and also sets a local variable on the triggered execution.
+     * Use this to set local scope variables that can be used for correlation later.
+     */
+    protected void startByMessageWithLocalVar(String messageName, String localVarName, String localVarValue, Map<String, Object> vars) throws MessagingException {
+        Log.debug("{Messenger} startByMessageWithLocalVar: " + messageName + " localVar: " + localVarName + "=" + localVarValue);
+        post(messageName, buildBodyWithLocalVars(messageName, null, localVarName, localVarValue, vars));
     }
 
     /**
@@ -66,7 +77,16 @@ public abstract class Messenger implements ExternalTaskHandler {
      */
     protected void correlate(String messageName, String targetProcessInstanceId, Map<String, Object> vars) throws MessagingException {
         Log.debug("{Messenger} correlate: " + messageName + " -> process: " + targetProcessInstanceId + " vars: " + vars);
-        post(messageName, buildBody(messageName, targetProcessInstanceId, vars));
+        post(messageName, buildBody(messageName, targetProcessInstanceId, null, null, vars));
+    }
+
+    /**
+     * Correlates a message to a specific execution using a local variable as a correlation key.
+     * Use when multiple executions in the same process instance wait on the same message name.
+     */
+    protected void correlateWithLocalKey(String messageName, String targetProcessInstanceId, String localKeyName, String localKeyValue, Map<String, Object> vars) throws MessagingException {
+        Log.debug("{Messenger} correlateWithLocalKey: " + messageName + " -> process: " + targetProcessInstanceId + " localKey: " + localKeyName + "=" + localKeyValue);
+        post(messageName, buildBody(messageName, targetProcessInstanceId, localKeyName, localKeyValue, vars));
     }
 
     private Map<String, Object> collectVariables(ExternalTask task) {
@@ -75,7 +95,28 @@ public abstract class Messenger implements ExternalTaskHandler {
         return vars;
     }
 
-    private String buildBody(String messageName, String processInstanceId, Map<String, Object> vars) {
+    private String buildBody(String messageName, String processInstanceId, String localKeyName, String localKeyValue, Map<String, Object> vars) {
+        JSONObject body = new JSONObject();
+        body.put("messageName", messageName);
+        if (processInstanceId != null) body.put("processInstanceId", processInstanceId);
+        if (localKeyName != null) {
+            JSONObject localVars = new JSONObject();
+            localVars.put(localKeyName, new JSONObject().put("value", localKeyValue).put("type", "String"));
+            body.put("localCorrelationKeys", localVars);
+        }
+        JSONObject jsonVars = new JSONObject();
+        for (Map.Entry<String, Object> entry : vars.entrySet()) {
+            if (entry.getValue() == null) continue;
+            jsonVars.put(entry.getKey(), new JSONObject()
+                .put("value", entry.getValue())
+                .put("type", resolveType(entry.getValue())));
+        }
+        body.put("processVariables", jsonVars);
+        Log.debug("{Messenger} Built request body: " + body);
+        return body.toString();
+    }
+
+    private String buildBodyWithLocalVars(String messageName, String processInstanceId, String localVarName, String localVarValue, Map<String, Object> vars) {
         JSONObject body = new JSONObject();
         body.put("messageName", messageName);
         if (processInstanceId != null) body.put("processInstanceId", processInstanceId);
@@ -87,7 +128,12 @@ public abstract class Messenger implements ExternalTaskHandler {
                 .put("type", resolveType(entry.getValue())));
         }
         body.put("processVariables", jsonVars);
-        Log.debug("{Messenger} Built request body: " + body);
+        if (localVarName != null) {
+            JSONObject localVars = new JSONObject();
+            localVars.put(localVarName, new JSONObject().put("value", localVarValue).put("type", "String"));
+            body.put("processVariablesLocal", localVars);
+        }
+        Log.debug("{Messenger} Built request body with local vars: " + body);
         return body.toString();
     }
 
@@ -104,14 +150,23 @@ public abstract class Messenger implements ExternalTaskHandler {
             Log.debug("{Messenger} POSTing to: " + CAMUNDA_URL);
             HttpURLConnection connection = (HttpURLConnection) new URL(CAMUNDA_URL).openConnection();
             connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+            connection.setRequestProperty("Accept-Charset", "utf-8");
             connection.setDoOutput(true);
             try (OutputStream os = connection.getOutputStream()) {
                 os.write(body.getBytes(StandardCharsets.UTF_8));
             }
             int status = connection.getResponseCode();
             Log.debug("{Messenger} Response status: " + status);
-            if (status < 200 || status >= 300) throw new MessagingException(messageName, "Camunda REST returned HTTP " + status);
+            if (status < 200 || status >= 300) {
+                BufferedReader errReader = new BufferedReader(new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8));
+                StringBuilder errBody = new StringBuilder();
+                String line;
+                while ((line = errReader.readLine()) != null) errBody.append(line);
+                errReader.close();
+                Log.debug("{Messenger} Error response body: " + errBody);
+                throw new MessagingException(messageName, "Camunda REST returned HTTP " + status + " — " + errBody);
+            }
         } catch (MessagingException e) {
             throw e;
         } catch (Exception e) {

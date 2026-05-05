@@ -9,7 +9,7 @@
       },
       "id": "Field_1nyuaw7",
       "key": "inviteesAccepted",
-      "disabled": true
+      "readonly": true
     },
     {
       "label": "People who declined",
@@ -20,7 +20,7 @@
       },
       "id": "Field_0xstrtm",
       "key": "inviteesDeclined",
-      "disabled": true
+      "readonly": true
     }
   ],
   "type": "default",

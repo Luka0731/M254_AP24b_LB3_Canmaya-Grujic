@@ -18,6 +18,7 @@ public class ConcertAnnouncedMessenger extends Messenger {
         String target = (String) variables.get("userProcessInstanceId");
         Map<String, Object> vars = new HashMap<>(variables);
         vars.remove("userProcessInstanceId");
+        vars.put("systemProcessInstanceId", sourceProcessInstanceId);
         correlate("ConcertAnnounced", target, vars);
     }
 }

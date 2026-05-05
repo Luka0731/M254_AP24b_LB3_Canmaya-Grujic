@@ -9,7 +9,7 @@
       },
       "id": "Field_17c6pnw",
       "key": "eventName",
-      "disabled": true
+      "readonly": true
     },
     {
       "label": "Venue",
@@ -20,7 +20,7 @@
       },
       "id": "Field_venue",
       "key": "eventVenue",
-      "disabled": true
+      "readonly": true
     },
     {
       "label": "City",
@@ -31,7 +31,7 @@
       },
       "id": "Field_city",
       "key": "eventCity",
-      "disabled": true
+      "readonly": true
     },
     {
       "label": "Date",
@@ -42,7 +42,7 @@
       },
       "id": "Field_date",
       "key": "eventDate",
-      "disabled": true
+      "readonly": true
     },
     {
       "label": "Price",
@@ -53,7 +53,7 @@
       },
       "id": "Field_price",
       "key": "eventPrice",
-      "disabled": true
+      "readonly": true
     },
     {
       "label": "I want to go to the Concert",
@@ -75,7 +75,7 @@
       },
       "id": "Field_0uz0o4l",
       "key": "inviteeUsernames",
-      "description": "Enter Camunda usernames separated by commas. They must be registered users of this system. Wrong names will simply be skipped."
+      "description": "Enter Camunda user id's (not display names) separated by commas."
     }
   ],
   "type": "default",

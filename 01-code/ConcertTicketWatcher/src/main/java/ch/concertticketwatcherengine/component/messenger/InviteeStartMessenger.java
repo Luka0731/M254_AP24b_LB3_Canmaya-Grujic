@@ -15,8 +15,22 @@ public class InviteeStartMessenger extends Messenger {
 
     @Override
     protected void send(String sourceProcessInstanceId, Map<String, Object> variables) throws MessagingException {
+        Object inviteeRaw = variables.get("invitee");
+        String inviteeUsername = extractFromInvitee(inviteeRaw, "username");
+        String inviteeEmail    = extractFromInvitee(inviteeRaw, "email");
+
         Map<String, Object> vars = new HashMap<>(variables);
-        vars.put("subProcessInstanceId", sourceProcessInstanceId);
-        startByMessage("InviteeStart", vars);
+        vars.remove("invitee");
+        vars.put("inviteeUsername",          inviteeUsername);
+        vars.put("inviteeEmail",             inviteeEmail);
+        vars.put("subProcessInstanceId",     sourceProcessInstanceId);
+        startByMessageWithLocalVar("InviteeStart", "inviteeUsername", inviteeUsername, vars);
+    }
+
+    private String extractFromInvitee(Object inviteeRaw, String key) {
+        if (inviteeRaw instanceof Map) {
+            return (String) ((Map<String, Object>) inviteeRaw).getOrDefault(key, "");
+        }
+        return "";
     }
 }

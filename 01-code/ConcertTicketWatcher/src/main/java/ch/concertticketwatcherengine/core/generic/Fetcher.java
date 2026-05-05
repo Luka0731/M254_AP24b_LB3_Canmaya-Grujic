@@ -3,6 +3,7 @@ package ch.concertticketwatcherengine.core.generic;
 import ch.concertticketwatcherengine.core.util.Log;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
@@ -20,7 +21,7 @@ public abstract class Fetcher<M extends Model> {
         int status = api.getResponseCode();
         Log.debug("{" + getClass().getSimpleName() + "} Response status: " + status);
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(api.getInputStream()));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(api.getInputStream(), StandardCharsets.UTF_8));
         StringBuilder response = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) response.append(line);
