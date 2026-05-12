@@ -116,11 +116,6 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
       <bpmn:outgoing>Flow_16m86sh</bpmn:outgoing>
       <bpmn:messageEventDefinition id="MessageEventDefinition_1v5fnq8" messageRef="Message_InvitationResult" />
     </bpmn:intermediateCatchEvent>
-    <bpmn:intermediateThrowEvent id="ThrowEvent_SystemStart">
-      <bpmn:incoming>Flow_1rdlhyb</bpmn:incoming>
-      <bpmn:outgoing>Flow_148b2h9</bpmn:outgoing>
-      <bpmn:messageEventDefinition id="MessageEventDefinition_17kwr5q" messageRef="Message_SystemStart" camunda:type="external" camunda:topic="send-system-start" />
-    </bpmn:intermediateThrowEvent>
     <bpmn:userTask id="UserTask_ViewInvatationsResult" name="View invatations result" camunda:formRef="ViewInvitationResults" camunda:formRefBinding="latest" camunda:assignee="${initiator}">
       <bpmn:incoming>Flow_16m86sh</bpmn:incoming>
       <bpmn:outgoing>Flow_12bgz2s</bpmn:outgoing>
@@ -160,6 +155,11 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
       <bpmn:incoming>Flow_1hln8rj</bpmn:incoming>
       <bpmn:outgoing>Flow_1rdlhyb</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:intermediateThrowEvent id="ThrowEvent_SystemStart">
+      <bpmn:incoming>Flow_1rdlhyb</bpmn:incoming>
+      <bpmn:outgoing>Flow_148b2h9</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_17kwr5q" messageRef="Message_SystemStart" camunda:type="external" camunda:topic="send-system-start" />
+    </bpmn:intermediateThrowEvent>
     <bpmn:association id="Association_01pstm2" associationDirection="None" sourceRef="TextAnnotation_0j6ckmy" targetRef="UserTask_StartNewArtistWatch" />
   </bpmn:process>
   <bpmn:process id="Process_ConcertTicketWatcherSystem" isExecutable="true" camunda:historyTimeToLive="18250" camunda:isStartableInTasklist="false">
@@ -363,50 +363,11 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
         <dc:Bounds x="700" y="580" width="1840" height="230" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1hvqebr_di" bpmnElement="UserTask_StartNewArtistWatch">
-        <dc:Bounds x="880" y="690" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_Main">
-        <dc:Bounds x="772" y="712" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1r7ubut_di" bpmnElement="UserTask_FillInConcertSettingsForum">
-        <dc:Bounds x="1450" y="690" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_05yleq0_di" bpmnElement="ExclusiveGateway_GoingToConcert-User" isMarkerVisible="true">
-        <dc:Bounds x="1715" y="705" width="50" height="50" />
+      <bpmndi:BPMNShape id="Event_0huxe2o_di" bpmnElement="CatchEvent_WaitForConcertAnnounced">
+        <dc:Bounds x="1342" y="712" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1711" y="762" width="60" height="27" />
+          <dc:Bounds x="1322" y="683" width="78" height="27" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1jfrl2r_di" bpmnElement="Gateway_OtherUsersInvited-User" isMarkerVisible="true">
-        <dc:Bounds x="1825" y="705" width="50" height="50" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1822" y="762" width="58" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1hqehvc_di" bpmnElement="EndEvent_UserDidntInviteAnyone">
-        <dc:Bounds x="1832" y="602" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0bzgiyh_di" bpmnElement="EndEvent_UserDeclinedConcert-User">
-        <dc:Bounds x="1722" y="602" width="36" height="36" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="2338" y="572" width="85" height="27" />
-        </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0mmqe4t_di" bpmnElement="ThrowEvent_UserReply">
-        <dc:Bounds x="1612" y="712" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0pk1cfs_di" bpmnElement="EndEvent_User">
-        <dc:Bounds x="2452" y="712" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1tdytgh_di" bpmnElement="UserTask_ViewInvatationsResult">
-        <dc:Bounds x="2290" y="690" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1revbct_di" bpmnElement="ThrowEvent_SystemStart">
-        <dc:Bounds x="1052" y="712" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1y7en0m_di" bpmnElement="CatchEvent_WaitForInvitationResult">
         <dc:Bounds x="2182" y="712" width="36" height="36" />
@@ -414,45 +375,62 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
           <dc:Bounds x="2157" y="683" width="90" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0huxe2o_di" bpmnElement="CatchEvent_WaitForConcertAnnounced">
-        <dc:Bounds x="1342" y="712" width="36" height="36" />
+      <bpmndi:BPMNShape id="Activity_1tdytgh_di" bpmnElement="UserTask_ViewInvatationsResult">
+        <dc:Bounds x="2290" y="690" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0pk1cfs_di" bpmnElement="EndEvent_User">
+        <dc:Bounds x="2452" y="712" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0mmqe4t_di" bpmnElement="ThrowEvent_UserReply">
+        <dc:Bounds x="1612" y="712" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0bzgiyh_di" bpmnElement="EndEvent_UserDeclinedConcert-User">
+        <dc:Bounds x="1722" y="602" width="36" height="36" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1322" y="683" width="78" height="27" />
+          <dc:Bounds x="2338" y="572" width="85" height="27" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNEdge id="Flow_1rdlhyb_di" bpmnElement="Flow_1rdlhyb">
-        <di:waypoint x="980" y="730" />
-        <di:waypoint x="1052" y="730" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1hln8rj_di" bpmnElement="Flow_1hln8rj">
-        <di:waypoint x="808" y="730" />
-        <di:waypoint x="880" y="730" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1ckxn52_di" bpmnElement="Flow_1ckxn52">
-        <di:waypoint x="1875" y="730" />
-        <di:waypoint x="2182" y="730" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0566m1n_di" bpmnElement="Flow_0566m1n">
-        <di:waypoint x="1740" y="705" />
-        <di:waypoint x="1740" y="638" />
+      <bpmndi:BPMNShape id="Event_1hqehvc_di" bpmnElement="EndEvent_UserDidntInviteAnyone">
+        <dc:Bounds x="1832" y="602" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1jfrl2r_di" bpmnElement="Gateway_OtherUsersInvited-User" isMarkerVisible="true">
+        <dc:Bounds x="1825" y="705" width="50" height="50" />
         <bpmndi:BPMNLabel>
-          <dc:Bounds x="1743" y="668" width="13" height="14" />
+          <dc:Bounds x="1822" y="762" width="58" height="27" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1kquxeh_di" bpmnElement="Flow_1kquxeh">
-        <di:waypoint x="1378" y="730" />
-        <di:waypoint x="1450" y="730" />
-      </bpmndi:BPMNEdge>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_05yleq0_di" bpmnElement="ExclusiveGateway_GoingToConcert-User" isMarkerVisible="true">
+        <dc:Bounds x="1715" y="705" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1711" y="762" width="60" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1r7ubut_di" bpmnElement="UserTask_FillInConcertSettingsForum">
+        <dc:Bounds x="1450" y="690" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_Main">
+        <dc:Bounds x="772" y="712" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1hvqebr_di" bpmnElement="UserTask_StartNewArtistWatch">
+        <dc:Bounds x="880" y="690" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1revbct_di" bpmnElement="ThrowEvent_SystemStart">
+        <dc:Bounds x="1052" y="712" width="36" height="36" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_148b2h9_di" bpmnElement="Flow_148b2h9">
         <di:waypoint x="1088" y="730" />
         <di:waypoint x="1342" y="730" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1dzzzxt_di" bpmnElement="Flow_1dzzzxt">
-        <di:waypoint x="1765" y="730" />
-        <di:waypoint x="1825" y="730" />
-        <bpmndi:BPMNLabel>
-          <dc:Bounds x="1768" y="712" width="18" height="14" />
-        </bpmndi:BPMNLabel>
+      <bpmndi:BPMNEdge id="Flow_16m86sh_di" bpmnElement="Flow_16m86sh">
+        <di:waypoint x="2218" y="730" />
+        <di:waypoint x="2290" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12bgz2s_di" bpmnElement="Flow_12bgz2s">
+        <di:waypoint x="2390" y="730" />
+        <di:waypoint x="2452" y="730" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_05xzjxf_di" bpmnElement="Flow_05xzjxf">
         <di:waypoint x="1850" y="705" />
@@ -461,21 +439,43 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
           <dc:Bounds x="1859" y="668" width="13" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_1qi51jw_di" bpmnElement="Flow_1qi51jw">
-        <di:waypoint x="1550" y="730" />
-        <di:waypoint x="1612" y="730" />
+      <bpmndi:BPMNEdge id="Flow_1ckxn52_di" bpmnElement="Flow_1ckxn52">
+        <di:waypoint x="1875" y="730" />
+        <di:waypoint x="2182" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1dzzzxt_di" bpmnElement="Flow_1dzzzxt">
+        <di:waypoint x="1765" y="730" />
+        <di:waypoint x="1825" y="730" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1768" y="712" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0566m1n_di" bpmnElement="Flow_0566m1n">
+        <di:waypoint x="1740" y="705" />
+        <di:waypoint x="1740" y="638" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1743" y="668" width="13" height="14" />
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_10vn0pm_di" bpmnElement="Flow_10vn0pm">
         <di:waypoint x="1648" y="730" />
         <di:waypoint x="1715" y="730" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_12bgz2s_di" bpmnElement="Flow_12bgz2s">
-        <di:waypoint x="2390" y="730" />
-        <di:waypoint x="2452" y="730" />
+      <bpmndi:BPMNEdge id="Flow_1qi51jw_di" bpmnElement="Flow_1qi51jw">
+        <di:waypoint x="1550" y="730" />
+        <di:waypoint x="1612" y="730" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_16m86sh_di" bpmnElement="Flow_16m86sh">
-        <di:waypoint x="2218" y="730" />
-        <di:waypoint x="2290" y="730" />
+      <bpmndi:BPMNEdge id="Flow_1kquxeh_di" bpmnElement="Flow_1kquxeh">
+        <di:waypoint x="1378" y="730" />
+        <di:waypoint x="1450" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1rdlhyb_di" bpmnElement="Flow_1rdlhyb">
+        <di:waypoint x="980" y="730" />
+        <di:waypoint x="1052" y="730" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1hln8rj_di" bpmnElement="Flow_1hln8rj">
+        <di:waypoint x="808" y="730" />
+        <di:waypoint x="880" y="730" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_01pstm2_di" bpmnElement="Association_01pstm2" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
         <di:waypoint x="1040" y="482" />
@@ -797,12 +797,6 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
         <di:waypoint x="2360" y="1550" />
         <di:waypoint x="2260" y="1550" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Association_0guf89o_di" bpmnElement="Association_0guf89o" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
-        <di:waypoint x="1532" y="497" />
-        <di:waypoint x="1532" y="520" />
-        <di:waypoint x="1500" y="550" />
-        <di:waypoint x="1500" y="690" />
-      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Association_1a0rbtb_di" bpmnElement="Association_1a0rbtb" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
         <di:waypoint x="1651" y="1520" />
         <di:waypoint x="1690" y="1490" />
@@ -830,6 +824,12 @@ Note: the artist name must match exactly how Ticketmaster identifies the artist.
         <di:waypoint x="2730" y="1249" />
         <di:waypoint x="2540" y="1249" />
         <di:waypoint x="2510" y="1260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Association_0guf89o_di" bpmnElement="Association_0guf89o" bioc:stroke="#6b3c00" color:border-color="#6b3c00">
+        <di:waypoint x="1532" y="497" />
+        <di:waypoint x="1532" y="520" />
+        <di:waypoint x="1500" y="550" />
+        <di:waypoint x="1500" y="690" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>

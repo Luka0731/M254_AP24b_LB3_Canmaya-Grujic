@@ -2,7 +2,7 @@ package ch.concertticketwatcherengine.core.util;
 
 public class Log {
 
-    private final static boolean IS_DEBUG_ON = true;
+    private final static boolean IS_DEBUG_ON = false;
 
     // |----- helper method -----|
 
